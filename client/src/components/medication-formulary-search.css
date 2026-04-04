@@ -1,0 +1,27 @@
+.med-formulary__hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.med-formulary__list {
+  max-height: min(320px, 42vh);
+}
+
+.med-formulary__option {
+  flex-direction: column;
+  align-items: flex-start !important;
+  gap: 0.2rem !important;
+}
+
+.med-formulary__name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.med-formulary__sig {
+  font-size: 0.82rem;
+  line-height: 1.35;
+  display: block;
+  width: 100%;
+}

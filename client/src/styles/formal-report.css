@@ -1,0 +1,193 @@
+/* Shared formal report — print-friendly, white + light blue headers (lab + patient reports) */
+.formal-report {
+  max-width: 900px;
+  margin: 0 auto;
+  background: #fff;
+  color: #1a2b3d;
+  padding: 1.5rem 2rem 2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.formal-report__dept-title {
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0 0 1.25rem;
+  color: var(--primary-dark);
+}
+
+.formal-report__meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 2rem;
+  border: 1px solid var(--primary-18);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  background: linear-gradient(180deg, #f0fdfa, #f8fafc);
+}
+
+@media (max-width: 600px) {
+  .formal-report__meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formal-report__meta-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+}
+
+.formal-report__meta-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.formal-report__meta-row strong {
+  min-width: 7rem;
+  color: var(--primary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.formal-report__section-title {
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 1rem 0 0.75rem;
+  color: var(--primary-dark);
+}
+
+.formal-report__report-block {
+  break-inside: avoid;
+}
+
+.formal-report__notes-report {
+  margin-top: 2rem;
+}
+
+.formal-report__subsection {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+  color: var(--primary);
+}
+
+.formal-report__table-wrap {
+  overflow-x: auto;
+  border: 1px solid #bae6fd;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+}
+
+.formal-report table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.formal-report thead th {
+  background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 100%);
+  color: #fff;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid #0ea5e9;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.formal-report__table--lab thead th:nth-child(2),
+.formal-report__table--lab thead th:nth-child(3),
+.formal-report__table--lab thead th:nth-child(4),
+.formal-report__table--lab tbody td:nth-child(2),
+.formal-report__table--lab tbody td:nth-child(3),
+.formal-report__table--lab tbody td:nth-child(4) {
+  text-align: center;
+}
+
+.formal-report tbody td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid #e0f2fe;
+  vertical-align: top;
+}
+
+.formal-report tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.formal-report tbody tr:nth-child(even) {
+  background: #f8fcff;
+}
+
+.formal-report__footer {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #bae6fd;
+}
+
+.formal-report__lab-signature-block {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed #bae6fd;
+}
+
+.formal-report__lab-signature-block .formal-report__signature {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.formal-report__signature {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.formal-report__signature-box {
+  min-width: 240px;
+  max-width: 100%;
+  text-align: center;
+}
+
+.formal-report__signature-line {
+  border-bottom: 1px solid #1a2b3d;
+  min-height: 2.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.formal-report__signature-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+@media print {
+  .formal-report {
+    box-shadow: none;
+    border: none;
+    max-width: none;
+    padding: 0;
+  }
+
+  .formal-report__notes-report {
+    page-break-before: always;
+  }
+
+  .formal-report thead th {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
