@@ -25,7 +25,7 @@ export function LabDashboard() {
   return (
     <>
       <p className="muted" style={{ marginBottom: '1.25rem' }}>
-        Enter structured numeric and text results for doctor-requested tests.
+        Review and complete pending lab orders.
       </p>
       <div className="grid-2">
         <div className="stat-card">

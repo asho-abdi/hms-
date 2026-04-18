@@ -61,6 +61,7 @@ export function DoctorDashboard() {
       adminDoctorId={null}
       onClinicalRefresh={() => setPanelRefresh((n) => n + 1)}
       initialVisitId={visitFromQuery}
+      hideMyPatientsSection
     />
   );
 }

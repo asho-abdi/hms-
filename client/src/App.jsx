@@ -5,6 +5,7 @@ import { ROLES } from './constants/roles.js';
 import { Login } from './pages/Login.jsx';
 import { AdminDashboard } from './pages/dashboards/AdminDashboard.jsx';
 import { DoctorDashboard } from './pages/dashboards/DoctorDashboard.jsx';
+import { DoctorFullReportsPage } from './pages/dashboards/DoctorFullReportsPage.jsx';
 import { AdminDoctorPanel } from './pages/dashboards/AdminDoctorPanel.jsx';
 import { ReceptionDashboard } from './pages/dashboards/ReceptionDashboard.jsx';
 import { LabDashboard } from './pages/dashboards/LabDashboard.jsx';
@@ -59,19 +60,19 @@ export default function App() {
           }
         />
         <Route path="/dashboard/doctor" element={<ProtectedRoute roles={[ROLES.DOCTOR]}><DoctorDashboard /></ProtectedRoute>} />
+        <Route
+          path="/dashboard/doctor/full-reports"
+          element={
+            <ProtectedRoute roles={[ROLES.DOCTOR]}>
+              <DoctorFullReportsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/dashboard/reception" element={<ProtectedRoute roles={[ROLES.RECEPTIONIST]}><ReceptionDashboard /></ProtectedRoute>} />
         <Route path="/dashboard/lab" element={<ProtectedRoute roles={[ROLES.LAB]}><LabDashboard /></ProtectedRoute>} />
 
         <Route path="/patients" element={<ProtectedRoute roles={[ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.DOCTOR]}><Patients /></ProtectedRoute>} />
         <Route path="/patients/:id/edit" element={<ProtectedRoute roles={[ROLES.ADMIN, ROLES.RECEPTIONIST]}><PatientEdit /></ProtectedRoute>} />
-        <Route
-          path="/patients/:id/report"
-          element={
-            <ProtectedRoute roles={[ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.DOCTOR, ROLES.LAB]}>
-              <PatientReport />
-            </ProtectedRoute>
-          }
-        />
 
         <Route path="/appointments" element={<ProtectedRoute roles={[ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.DOCTOR]}><Appointments /></ProtectedRoute>} />
 
@@ -108,6 +109,15 @@ export default function App() {
 
         <Route path="/admin/users" element={<ProtectedRoute roles={[ROLES.ADMIN]}><AdminUsers /></ProtectedRoute>} />
       </Route>
+
+      <Route
+        path="/patients/:id/report"
+        element={
+          <ProtectedRoute roles={[ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.DOCTOR, ROLES.LAB]}>
+            <PatientReport />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

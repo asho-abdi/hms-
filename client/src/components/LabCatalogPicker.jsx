@@ -43,7 +43,7 @@ export function LabCatalogPicker({ selectedIds, onChange, disabled = false }) {
   }
 
   if (!catalog.length) {
-    return <p className="muted">No tests in catalog. Ensure the server has run at least once to seed categories.</p>;
+    return <p className="muted">No tests in catalog.</p>;
   }
 
   return (
@@ -62,7 +62,15 @@ export function LabCatalogPicker({ selectedIds, onChange, disabled = false }) {
                     onChange={() => toggle(t._id)}
                     disabled={disabled}
                   />
-                  <span className="lab-catalog-picker__name">{t.name}</span>
+                  <span className="lab-catalog-picker__name">
+                    {t.name}
+                    {t.normal_range || t.unit ? (
+                      <span className="muted" style={{ display: 'block', fontSize: '0.78rem', marginTop: '0.15rem' }}>
+                        {t.normal_range ? `Range: ${t.normal_range}` : 'Range: —'}
+                        {t.unit ? ` · Unit: ${t.unit}` : ''}
+                      </span>
+                    ) : null}
+                  </span>
                   <span className="muted lab-catalog-picker__type">{t.type}</span>
                 </label>
               );

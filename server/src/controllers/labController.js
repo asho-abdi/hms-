@@ -227,8 +227,8 @@ function pendingRowsFromOrder(order) {
         category_name: cat,
         test_name: name,
         result: 'Pending',
-        n_range: '—',
-        uom: '—',
+        n_range: t?.normal_range ? String(t.normal_range) : '—',
+        uom: t?.unit ? String(t.unit) : '—',
         image_url: '',
       };
     });

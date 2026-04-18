@@ -50,7 +50,14 @@ function resultsFromOrder(data) {
       if (!t || !t._id) return emptyNumeric();
       const tid = t._id;
       if (t.type === 'numeric') {
-        return { type: 'numeric', test: tid, parameter: t.name, value: '', unit: '', normal_range: '' };
+        return {
+          type: 'numeric',
+          test: tid,
+          parameter: t.name,
+          value: '',
+          unit: t.unit || '',
+          normal_range: t.normal_range || '',
+        };
       }
       if (t.type === 'text') {
         return { type: 'text', test: tid, test_name: t.name, result: '' };

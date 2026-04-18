@@ -7,6 +7,10 @@ const labTestSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'TestCategory', required: true },
     type: { type: String, enum: LAB_TEST_TYPES, required: true },
+    /** Reference normal range shown on lab entry / reports (when applicable). */
+    normal_range: { type: String, trim: true, default: '' },
+    /** Unit of measurement shown on lab entry / reports (when applicable). */
+    unit: { type: String, trim: true, default: '' },
     /** Price billed when this test is ordered (lab fee sum for reception). */
     price: { type: Number, min: 0, default: 10 },
   },

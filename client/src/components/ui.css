@@ -411,6 +411,12 @@
   margin-top: 1rem;
 }
 
+/* Allow popovers (e.g. visit combobox) to extend past the card; default .card uses overflow: hidden */
+.card.card--overflow-visible {
+  overflow: visible;
+  padding-bottom: 2rem;
+}
+
 .grid-2 {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -806,6 +812,11 @@ table.data-table tbody tr:hover td {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+/* Full-width helper line so Route + Duration stay on one row below */
+.prescription-form__sig-intro {
+  grid-column: 1 / -1;
 }
 
 @media (max-width: 560px) {

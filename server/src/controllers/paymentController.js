@@ -3,8 +3,18 @@ import { Visit } from '../models/Visit.js';
 import { VISIT_STATUS, PAYMENT_STATUS } from '../config/constants.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
+function normalizeChargeType(raw) {
+  const v = String(raw || 'all').toLowerCase();
+  if (v === 'consultation' || v === 'lab' || v === 'pharmacy') return v;
+  return 'all';
+}
+
 export const listUnpaid = asyncHandler(async (req, res) => {
-  const payments = await Payment.find({ status: PAYMENT_STATUS.UNPAID })
+  const chargeType = normalizeChargeType(req.query.charge_type);
+  const filter = { status: PAYMENT_STATUS.UNPAID };
+  if (chargeType !== 'all') filter.charge_type = chargeType;
+
+  const payments = await Payment.find(filter)
     .populate({
       path: 'visit',
       populate: [
@@ -22,6 +32,7 @@ export const listUnpaid = asyncHandler(async (req, res) => {
 /** Paginated list of all visit payments for reporting (paid / unpaid / all). */
 export const listPaymentReport = asyncHandler(async (req, res) => {
   const rawStatus = (req.query.status || 'all').toLowerCase();
+  const chargeType = normalizeChargeType(req.query.charge_type);
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50));
   const skip = (page - 1) * limit;
@@ -29,6 +40,7 @@ export const listPaymentReport = asyncHandler(async (req, res) => {
   const filter = {};
   if (rawStatus === 'paid') filter.status = PAYMENT_STATUS.PAID;
   else if (rawStatus === 'unpaid') filter.status = PAYMENT_STATUS.UNPAID;
+  if (chargeType !== 'all') filter.charge_type = chargeType;
 
   const [payments, total] = await Promise.all([
     Payment.find(filter)

@@ -10,6 +10,7 @@ import {
   FlaskConical,
   ShieldCheck,
   Stethoscope,
+  FileText,
   LogOut,
   HeartPulse,
   ChevronLeft,
@@ -50,6 +51,7 @@ function navForRole(role) {
   if (role === ROLES.DOCTOR) {
     return [
       overview,
+      { to: '/dashboard/doctor/full-reports', label: 'Full reports', icon: FileText, end: true },
       { to: '/visits', label: 'My queue', icon: Stethoscope },
       { to: '/lab-requests', label: 'Lab requests', icon: FlaskConical },
     ];
@@ -67,6 +69,7 @@ const TITLES = {
   '/dashboard/doctor-panel': 'Doctor panel',
   '/dashboard/doctor-panel/queue': 'Visit queue',
   '/dashboard/doctor': 'Doctor',
+  '/dashboard/doctor/full-reports': 'Full reports',
   '/dashboard/reception': 'Reception',
   '/dashboard/lab': 'Laboratory',
   '/patients': 'Patients',
@@ -117,7 +120,7 @@ export function DashboardLayout() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   return (

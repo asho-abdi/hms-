@@ -11,18 +11,23 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     setAuthToken(null);
     setUser(null);
+    setLoading(false);
   }, []);
 
   const refreshUser = useCallback(async () => {
-    const token = localStorage.getItem('hms_token');
-    if (!token) {
+    const tokenAtStart = localStorage.getItem('hms_token');
+    if (!tokenAtStart) {
       setUser(null);
       setLoading(false);
       return;
     }
-    setAuthToken(token);
+    setAuthToken(tokenAtStart);
     try {
       const { data } = await api.get('/auth/me');
+      // Ignore stale responses if the user signed out or replaced the session while /auth/me was in flight.
+      if (localStorage.getItem('hms_token') !== tokenAtStart) {
+        return;
+      }
       setUser(data.user);
     } catch {
       setAuthToken(null);

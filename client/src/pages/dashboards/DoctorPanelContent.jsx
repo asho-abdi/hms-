@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { VisitClinicalForms } from '../../components/VisitClinicalForms.jsx';
+import { DoctorMyPatientsSection } from './DoctorMyPatientsSection.jsx';
 
 export function formatPatientDt(d) {
   if (!d) return '—';
@@ -9,10 +10,10 @@ export function formatPatientDt(d) {
 
 /** Same copy as the doctor home dashboard (admin panel reuses when viewing as a doctor). */
 export const DOCTOR_DASHBOARD_INTRO =
-  'Paid visits waiting for clinical work appear in your queue. Below is every patient you have a visit with, with a link to their full medical report (visit history and labs).';
+  'Active paid visits appear in your queue.';
 
 export const DOCTOR_DASHBOARD_PATIENTS_INTRO =
-  'Everyone you have a visit with is listed here. Open the full medical report for visit history and lab results.';
+  'Patients with at least one visit with you.';
 
 /**
  * Shared doctor queue + patient list UI (used by doctor home and admin doctor panel).
@@ -33,6 +34,8 @@ export function DoctorPanelContent({
   initialVisitId = null,
   /** Loaded completed visits for this doctor (same shape as queue items); null while not fetched */
   completedVisitItems = null,
+  /** Doctor home: patient list lives on /dashboard/doctor/full-reports instead */
+  hideMyPatientsSection = false,
 }) {
   const [searchParams] = useSearchParams();
   const visitFromUrl = searchParams.get('visit');
@@ -40,9 +43,55 @@ export function DoctorPanelContent({
 
   const list = myPatients ?? [];
   const [selectedVisitId, setSelectedVisitId] = useState('');
+  const [visitQuery, setVisitQuery] = useState('');
+  const [visitOpen, setVisitOpen] = useState(false);
+  const visitComboboxRef = useRef(null);
   const completedList = completedVisitItems ?? [];
   const clinicalReady = queueItems !== null && completedVisitItems !== null;
   const initialVisitAppliedRef = useRef(false);
+
+  const visitOptions = useMemo(() => {
+    const active = (queueItems ?? []).map((v) => ({
+      id: String(v._id),
+      group: 'active',
+      label: `${v.patient?.full_name || 'Patient'} · ${new Date(v.createdAt).toLocaleString()}`,
+    }));
+    const done = (completedList ?? []).map((v) => ({
+      id: String(v._id),
+      group: 'completed',
+      label: `${v.patient?.full_name || 'Patient'} · completed ${new Date(v.updatedAt).toLocaleString()}`,
+    }));
+    return [...active, ...done];
+  }, [queueItems, completedList]);
+
+  const filteredVisitOptions = useMemo(() => {
+    const q = visitQuery.trim().toLowerCase();
+    if (!q) return visitOptions;
+    return visitOptions.filter((o) => o.label.toLowerCase().includes(q));
+  }, [visitOptions, visitQuery]);
+
+  const filteredActiveVisits = useMemo(
+    () => filteredVisitOptions.filter((o) => o.group === 'active'),
+    [filteredVisitOptions]
+  );
+  const filteredCompletedVisits = useMemo(
+    () => filteredVisitOptions.filter((o) => o.group === 'completed'),
+    [filteredVisitOptions]
+  );
+
+  const pickVisit = (o) => {
+    setSelectedVisitId(o.id);
+    setVisitQuery(o.label);
+    setVisitOpen(false);
+  };
+
+  useEffect(() => {
+    const onDocDown = (e) => {
+      if (!visitComboboxRef.current?.contains(e.target)) setVisitOpen(false);
+    };
+    document.addEventListener('mousedown', onDocDown);
+    return () => document.removeEventListener('mousedown', onDocDown);
+  }, []);
 
   useEffect(() => {
     initialVisitAppliedRef.current = false;
@@ -69,6 +118,13 @@ export function DoctorPanelContent({
     setSelectedVisitId((prev) => (prev && (inQueue(prev) || inCompleted(prev)) ? prev : ''));
   }, [queueItems, completedVisitItems, completedList, preferredVisitId]);
 
+  useEffect(() => {
+    if (!selectedVisitId) return;
+    const opt = visitOptions.find((o) => o.id === String(selectedVisitId));
+    if (opt) setVisitQuery(opt.label);
+    else setVisitQuery('Open visit (from link)');
+  }, [selectedVisitId, visitOptions]);
+
   return (
     <>
       {header}
@@ -85,7 +141,16 @@ export function DoctorPanelContent({
           <div className="label">Patients on file</div>
         </div>
       </div>
-      <div className="card" style={{ marginTop: '1.25rem' }}>
+      <div
+        className="card"
+        style={{
+          marginTop: '1.25rem',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          alignItems: 'center',
+        }}
+      >
         {visitQueueDisabled ? (
           <button type="button" className="btn btn-primary" disabled>
             Open visit queue
@@ -95,61 +160,24 @@ export function DoctorPanelContent({
             Open visit queue
           </Link>
         )}
+        {hideMyPatientsSection && !adminDoctorId ? (
+          <Link to="/dashboard/doctor/full-reports" className="btn btn-ghost">
+            Full reports
+          </Link>
+        ) : null}
       </div>
 
-      <h2 className="page-title" style={{ marginTop: '2rem', marginBottom: '0.75rem' }}>
-        {patientsTitle}
-      </h2>
-      <p className="muted" style={{ marginBottom: '1rem' }}>
-        {patientsIntro}
-      </p>
-
-      <div className="table-wrap">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Patient</th>
-              <th>Phone</th>
-              <th>Visits with you</th>
-              <th>Completed visits</th>
-              <th>Last seen</th>
-              <th style={{ textAlign: 'right' }}>Report</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="empty-state">
-                  Loading…
-                </td>
-              </tr>
-            ) : list.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="empty-state">
-                  No patients yet — visits you take will appear here.
-                </td>
-              </tr>
-            ) : (
-              list.map((row) => (
-                <tr key={row.patient._id}>
-                  <td>
-                    <strong>{row.patient.full_name}</strong>
-                  </td>
-                  <td>{row.patient.phone || '—'}</td>
-                  <td>{row.visit_count}</td>
-                  <td>{row.completed_visit_count}</td>
-                  <td>{formatPatientDt(row.last_visit_at)}</td>
-                  <td style={{ textAlign: 'right' }}>
-                    <Link to={`/patients/${row.patient._id}/report`} className="btn btn-ghost">
-                      Full report
-                    </Link>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {!hideMyPatientsSection ? (
+        <div style={{ marginTop: '2rem' }}>
+          <DoctorMyPatientsSection
+            myPatients={myPatients}
+            loading={loading}
+            patientsTitle={patientsTitle}
+            patientsIntro={patientsIntro}
+            reportLinkLabel="Medical record"
+          />
+        </div>
+      ) : null}
 
       {clinicalReady && (
         <>
@@ -157,53 +185,106 @@ export function DoctorPanelContent({
             Clinical workspace
           </h2>
           <p className="muted" style={{ marginBottom: '1rem' }}>
-            Pick an active visit to work the encounter, or a completed visit to reopen it and correct prescription, notes,
-            or lab steps — then complete again when done.
+            Select a visit to continue clinical work.
           </p>
-          <div className="card">
-            <div className="form-row" style={{ marginBottom: 0, maxWidth: 560 }}>
+          <div className="card card--overflow-visible">
+            <div className="form-row" style={{ marginBottom: 0, maxWidth: 560 }} ref={visitComboboxRef}>
               <label htmlFor="doctor-panel-visit">Visit</label>
-              <select
-                id="doctor-panel-visit"
-                className="select"
-                value={selectedVisitId}
-                onChange={(e) => setSelectedVisitId(e.target.value)}
-              >
-                <option value="">Select…</option>
-                {selectedVisitId &&
-                !queueItems.some((v) => String(v._id) === String(selectedVisitId)) &&
-                !completedList.some((v) => String(v._id) === String(selectedVisitId)) ? (
-                  <option value={selectedVisitId}>Open visit (from link)</option>
+              <div className="patient-combobox">
+                <input
+                  id="doctor-panel-visit"
+                  className="input"
+                  autoComplete="off"
+                  aria-autocomplete="list"
+                  aria-expanded={visitOpen}
+                  role="combobox"
+                  value={visitQuery}
+                  onChange={(e) => {
+                    setVisitQuery(e.target.value);
+                    setSelectedVisitId('');
+                  }}
+                  onFocus={() => setVisitOpen(true)}
+                  placeholder="Search by patient name or date…"
+                />
+                {visitOpen && (filteredActiveVisits.length > 0 || filteredCompletedVisits.length > 0) ? (
+                  <ul className="patient-combobox__list" role="listbox" aria-label="Visits">
+                    {filteredActiveVisits.length > 0 ? (
+                      <>
+                        <li
+                          role="presentation"
+                          className="muted"
+                          style={{
+                            padding: '0.35rem 0.75rem 0.2rem',
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                            listStyle: 'none',
+                          }}
+                        >
+                          Active queue
+                        </li>
+                        {filteredActiveVisits.map((o) => (
+                          <li key={o.id} role="presentation">
+                            <button
+                              type="button"
+                              className="patient-combobox__option"
+                              role="option"
+                              aria-selected={selectedVisitId === o.id}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => pickVisit(o)}
+                            >
+                              {o.label}
+                            </button>
+                          </li>
+                        ))}
+                      </>
+                    ) : null}
+                    {filteredCompletedVisits.length > 0 ? (
+                      <>
+                        <li
+                          role="presentation"
+                          className="muted"
+                          style={{
+                            padding: '0.45rem 0.75rem 0.2rem',
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                            listStyle: 'none',
+                          }}
+                        >
+                          Completed — reopen to edit
+                        </li>
+                        {filteredCompletedVisits.map((o) => (
+                          <li key={o.id} role="presentation">
+                            <button
+                              type="button"
+                              className="patient-combobox__option"
+                              role="option"
+                              aria-selected={selectedVisitId === o.id}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => pickVisit(o)}
+                            >
+                              {o.label}
+                            </button>
+                          </li>
+                        ))}
+                      </>
+                    ) : null}
+                  </ul>
                 ) : null}
-                {queueItems.length > 0 ? (
-                  <optgroup label="Active queue">
-                    {queueItems.map((v) => {
-                      const vid = String(v._id);
-                      return (
-                        <option key={vid} value={vid}>
-                          {v.patient?.full_name || 'Patient'} · {new Date(v.createdAt).toLocaleString()}
-                        </option>
-                      );
-                    })}
-                  </optgroup>
+                {visitOpen && visitQuery.trim() && filteredVisitOptions.length === 0 && visitOptions.length > 0 ? (
+                  <p className="patient-combobox__empty muted">No visits match your search.</p>
                 ) : null}
-                {completedList.length > 0 ? (
-                  <optgroup label="Completed — reopen to edit">
-                    {completedList.map((v) => {
-                      const vid = String(v._id);
-                      return (
-                        <option key={vid} value={vid}>
-                          {v.patient?.full_name || 'Patient'} · completed {new Date(v.updatedAt).toLocaleString()}
-                        </option>
-                      );
-                    })}
-                  </optgroup>
+                {visitOpen && visitOptions.length === 0 ? (
+                  <p className="patient-combobox__empty muted">No visits in queue or recent completed list.</p>
                 ) : null}
-              </select>
+              </div>
             </div>
             {!queueItems.length && !completedList.length ? (
               <p className="muted" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
-                No active or recent completed visits — open the visit queue when patients are waiting.
+                No visits available.
               </p>
             ) : null}
           </div>

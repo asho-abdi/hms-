@@ -73,8 +73,7 @@ export function AdminDashboard() {
       <div className="admin-overview-hero">
         <h1 className="admin-overview-hero__title">At a glance</h1>
         <p className="admin-overview-hero__sub">
-          Hospital-wide snapshot: registered patients (filterable), doctors ranked by distinct patients seen, and quick
-          links to every module.
+          Hospital snapshot and quick links.
         </p>
       </div>
 
@@ -113,7 +112,7 @@ export function AdminDashboard() {
         <div className="card" style={{ marginBottom: '1.5rem' }}>
           <h2 style={{ marginBottom: '0.75rem' }}>Staff by role</h2>
           <p className="muted" style={{ marginBottom: '0.85rem' }}>
-            Active accounts in each role.
+            Active accounts.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {Object.entries(byRole).map(([role, n]) => (
@@ -142,7 +141,7 @@ export function AdminDashboard() {
       <div className="card">
         <h2 style={{ marginBottom: '0.75rem' }}>Shortcuts</h2>
         <p className="muted" style={{ marginBottom: '1rem' }}>
-          Jump to operational areas.
+          Quick access.
         </p>
         <div className="admin-shortcuts">
           <Link className="admin-shortcut" to="/patients">
@@ -182,7 +181,7 @@ export function AdminDashboard() {
           Doctors by patient reach
         </h2>
         <p className="muted" style={{ marginBottom: '1rem' }}>
-          Ranked by number of <strong>distinct patients</strong> who have at least one visit with that doctor (all time).
+          Ranked by distinct patients seen.
         </p>
         {topDoctor ? (
           <div className="admin-top-doc">
@@ -199,7 +198,7 @@ export function AdminDashboard() {
           </div>
         ) : (
           <p className="muted" style={{ marginBottom: '1rem' }}>
-            No visit data yet — rankings appear after doctors see patients.
+            No visit data yet.
           </p>
         )}
         {doctorsRanked.length > 0 && (
@@ -245,10 +244,7 @@ export function AdminDashboard() {
           Reset operational data
         </h2>
         <p className="muted" style={{ marginBottom: '1rem', lineHeight: 1.55 }}>
-          If the system feels heavy from too many test registrations, you can remove all{' '}
-          <strong>patients, visits, appointments, lab orders, payments</strong>, and uploaded lab images.{' '}
-          <strong>Staff accounts</strong> and the <strong>lab test catalog</strong> are not removed. This action cannot be
-          undone.
+          Deletes patients, visits, appointments, lab orders, payments, and lab images. Staff accounts and lab catalog stay.
         </p>
         <button type="button" className="btn btn-danger" onClick={() => setResetOpen(true)}>
           Open reset…
@@ -270,7 +266,7 @@ export function AdminDashboard() {
               Confirm full data reset
             </h2>
             <p className="muted" style={{ fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.5 }}>
-              Type the phrase below exactly, then confirm. All patient-related records will be permanently deleted.
+              Type the phrase to confirm.
             </p>
             <p style={{ marginBottom: '0.65rem', fontSize: '0.85rem', fontFamily: 'var(--mono, monospace)' }}>
               {RESET_CONFIRM_PHRASE}

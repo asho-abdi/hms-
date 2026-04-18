@@ -73,8 +73,7 @@ export function MedicationFormularySearch({ onSelect }) {
         disabled={loadError && items.length === 0}
       />
       <p className="muted med-formulary__hint">
-        Institutional formulary — each selection adds a medication line to the prescription. Edit or remove lines below
-        before saving.
+        Selecting an item adds a medication line.
       </p>
       {open && items.length > 0 && filtered.length > 0 ? (
         <ul className="patient-combobox__list med-formulary__list" role="listbox" aria-label="Medication formulary">
@@ -99,7 +98,7 @@ export function MedicationFormularySearch({ onSelect }) {
         </ul>
       ) : null}
       {open && items.length > 0 && q && filtered.length === 0 ? (
-        <p className="patient-combobox__empty muted">No formulary match — enter medication and dose manually below.</p>
+        <p className="patient-combobox__empty muted">No match. Enter manually.</p>
       ) : null}
     </div>
   );

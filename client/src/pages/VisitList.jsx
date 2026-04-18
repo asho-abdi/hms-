@@ -108,10 +108,10 @@ export function VisitList() {
       </h2>
       <p className="muted" style={{ marginBottom: '1rem' }}>
         {isDoctor
-          ? 'Paid visits assigned to you that are not completed.'
+          ? 'Paid visits assigned to you.'
           : doctorQueueMode
-            ? 'Paid visits for the selected doctor that are not completed. Open a visit to continue clinical work.'
-            : 'Recent visits across the system.'}
+            ? 'Paid visits for the selected doctor.'
+            : 'Recent visits.'}
       </p>
 
       {canWalkIn && !doctorQueueMode && (

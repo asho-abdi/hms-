@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/client.js';
 import { StatusBadge } from './StatusBadge.jsx';
-import { LabCatalogPicker } from './LabCatalogPicker.jsx';
 import { MedicationFormularySearch } from './MedicationFormularySearch.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { ROLES, VISIT_STATUS, PAYMENT_STATUS } from '../constants/roles.js';
@@ -43,7 +42,7 @@ const RX_ROUTES = [
 ];
 
 /**
- * Prescription & notes, lab request, complete visit — shared by Visit detail and doctor panels.
+ * Prescription & notes, complete visit — shared by Visit detail and doctor panels. (Lab requests: use Lab tests in the sidebar.)
  * @param {string} [adminDoctorId] - when set (admin), visit must belong to this doctor
  * @param {boolean} [omitSummaryCard] - hide patient strip + “Open full visit” on visit detail page
  */
@@ -51,13 +50,10 @@ export function VisitClinicalForms({ visitId, adminDoctorId, onUpdated, omitSumm
   const { user } = useAuth();
   const [data, setData] = useState(null);
   const [notes, setNotes] = useState({
-    frequency: '',
-    route: '',
-    duration: '',
+    route: 'PO',
     doctor_notes: '',
   });
   const [medications, setMedications] = useState([{ key: newMedKey(), medication: '', dosage: '' }]);
-  const [labTestIds, setLabTestIds] = useState([]);
   const [reopening, setReopening] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -69,9 +65,7 @@ export function VisitClinicalForms({ visitId, adminDoctorId, onUpdated, omitSumm
       setData(res);
       setMedications(visitToMedicationRows(res.visit));
       setNotes({
-        frequency: res.visit.frequency || '',
-        route: res.visit.route || '',
-        duration: res.visit.duration || '',
+        route: res.visit.route || 'PO',
         doctor_notes: res.visit.doctor_notes || '',
       });
     } catch {
@@ -103,31 +97,15 @@ export function VisitClinicalForms({ visitId, adminDoctorId, onUpdated, omitSumm
     try {
       await api.patch(`/visits/${visitId}`, {
         medications: lines,
-        frequency: notes.frequency,
+        frequency: '',
         route: notes.route,
-        duration: notes.duration,
+        duration: '',
         doctor_notes: notes.doctor_notes,
       });
       toast.success('Prescription & notes saved');
       notify();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not save');
-    }
-  };
-
-  const requestLab = async (e) => {
-    e.preventDefault();
-    if (!labTestIds.length) {
-      toast.error('Select at least one test from the catalog');
-      return;
-    }
-    try {
-      await api.post(`/visits/${visitId}/lab-request`, { testIds: labTestIds });
-      toast.success('Lab tests requested');
-      setLabTestIds([]);
-      notify();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Request failed');
     }
   };
 
@@ -149,15 +127,13 @@ export function VisitClinicalForms({ visitId, adminDoctorId, onUpdated, omitSumm
         setData(data);
         setMedications(visitToMedicationRows(data.visit));
         setNotes({
-          frequency: data.visit.frequency || '',
-          route: data.visit.route || '',
-          duration: data.visit.duration || '',
+          route: data.visit.route || 'PO',
           doctor_notes: data.visit.doctor_notes || '',
         });
       } else {
         await load();
       }
-      toast.success('Visit reopened — you can edit and complete again when ready');
+      toast.success('Visit reopened');
       onUpdated?.();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not reopen visit');
@@ -242,8 +218,7 @@ export function VisitClinicalForms({ visitId, adminDoctorId, onUpdated, omitSumm
         <div className="card" style={{ marginTop: '1rem' }}>
           <h2 style={{ marginBottom: '0.5rem' }}>Visit completed</h2>
           <p className="muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
-            To correct a prescription, doctor note, or lab step for this encounter, reopen it. You can save changes and mark
-            the visit complete again when finished.
+            Reopen to make corrections.
           </p>
           <button
             type="button"
@@ -261,8 +236,7 @@ export function VisitClinicalForms({ visitId, adminDoctorId, onUpdated, omitSumm
           <div className="card" style={{ marginTop: '1rem' }}>
             <h2>Prescription & notes</h2>
             <p className="muted" style={{ marginBottom: '1rem', fontSize: '0.88rem' }}>
-              Add one or more medications: use the formulary to append standard orders, add blank lines, or type manually.
-              Optional route and frequency / duration apply to the order as a whole for pharmacy and eMAR.
+              Add medications and doctor notes.
             </p>
             <form onSubmit={saveNotes}>
               <div className="prescription-form">
@@ -343,26 +317,12 @@ export function VisitClinicalForms({ visitId, adminDoctorId, onUpdated, omitSumm
                   </div>
                 </div>
                 <div className="prescription-form__sig" style={{ marginTop: '1rem' }}>
-                  <div className="form-row" style={{ marginBottom: 0 }}>
-                    <span className="muted" style={{ fontSize: '0.78rem', display: 'block', gridColumn: '1 / -1' }}>
-                      Applies to the prescription above when relevant (e.g. shared course or PRN note).
+                  <div className="form-row prescription-form__sig-intro" style={{ marginBottom: 0 }}>
+                    <span className="muted" style={{ fontSize: '0.78rem', display: 'block' }}>
+                      Optional.
                     </span>
                   </div>
-                  <div className="form-row" style={{ marginBottom: 0 }}>
-                    <label htmlFor="rx-frequency">Frequency</label>
-                    <input
-                      id="rx-frequency"
-                      className="input"
-                      value={notes.frequency}
-                      onChange={(e) => setNotes({ ...notes, frequency: e.target.value })}
-                      placeholder=""
-                      autoComplete="off"
-                    />
-                    <span className="muted" style={{ fontSize: '0.78rem', marginTop: '0.25rem', display: 'block' }}>
-                      How often (BID, TID, every 8 hours, once daily).
-                    </span>
-                  </div>
-                  <div className="form-row" style={{ marginBottom: 0 }}>
+                  <div className="form-row" style={{ marginBottom: 0, gridColumn: '1 / -1' }}>
                     <label htmlFor="rx-route">Route</label>
                     <select
                       id="rx-route"
@@ -376,20 +336,6 @@ export function VisitClinicalForms({ visitId, adminDoctorId, onUpdated, omitSumm
                         </option>
                       ))}
                     </select>
-                  </div>
-                  <div className="form-row" style={{ marginBottom: 0 }}>
-                    <label htmlFor="rx-duration">Duration</label>
-                    <input
-                      id="rx-duration"
-                      className="input"
-                      value={notes.duration}
-                      onChange={(e) => setNotes({ ...notes, duration: e.target.value })}
-                      placeholder=""
-                      autoComplete="off"
-                    />
-                    <span className="muted" style={{ fontSize: '0.78rem', marginTop: '0.25rem', display: 'block' }}>
-                      Course length (days, weeks, until review).
-                    </span>
                   </div>
                 </div>
               </div>
@@ -410,26 +356,9 @@ export function VisitClinicalForms({ visitId, adminDoctorId, onUpdated, omitSumm
           </div>
 
           <div className="card" style={{ marginTop: '1rem' }}>
-            <h2>Request lab tests</h2>
-            <p className="muted" style={{ marginBottom: '0.75rem' }}>
-              Choose tests from the standard catalog (same categories as the <Link to="/lab-requests">Lab tests</Link>{' '}
-              page). Use that page if you need priority or extra notes on the request.
-            </p>
-            <form onSubmit={requestLab}>
-              <div className="form-row">
-                <LabCatalogPicker selectedIds={labTestIds} onChange={setLabTestIds} />
-              </div>
-              <button type="submit" className="btn btn-primary">
-                Send to lab
-              </button>
-            </form>
-          </div>
-
-          <div className="card" style={{ marginTop: '1rem' }}>
             <h2>Complete visit</h2>
             <p className="muted" style={{ marginBottom: '0.75rem' }}>
-              Finish after any required lab work is done. If lab was requested, wait until status is{' '}
-              <strong>LAB COMPLETED</strong>.
+              Complete after clinical work and required labs are done.
             </p>
             <button type="button" className="btn btn-primary" onClick={complete}>
               Mark visit completed

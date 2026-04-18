@@ -104,7 +104,7 @@ export function RegisteredPatientsReport() {
         Registered patients report
       </h2>
       <p className="muted" style={{ marginBottom: '1rem' }}>
-        Filter by name, phone, gender, or registration date range. Results update when you apply filters.
+        Filter and review registered patients.
       </p>
 
       <form className="admin-filter-bar" onSubmit={applyFilters}>
@@ -138,7 +138,7 @@ export function RegisteredPatientsReport() {
         <div className="admin-filter-actions">
           <button type="submit" className="btn btn-primary">
             <Filter size={17} strokeWidth={2} aria-hidden />
-            Apply filters
+            Apply
           </button>
           <button type="button" className="btn btn-ghost" onClick={resetFilters}>
             Reset

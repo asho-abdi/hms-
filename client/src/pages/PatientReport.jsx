@@ -6,16 +6,28 @@ import { isDisplayableImageUrl } from '../utils/mediaUrl.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { ROLES } from '../constants/roles.js';
 import '../styles/formal-report.css';
+import '../styles/patient-report-page.css';
 
 const LAB_COMPLETED = 'COMPLETED';
 
 const CATEGORY_ORDER = [
-  'Blood Tests',
-  'Urine Tests',
+  'Liver Function Tests',
+  'Renal Function Tests',
+  'Lipid Profile',
+  'Endocrinology/Hormone Tests',
+  'Vitamins',
+  'Electrolyte Panel',
   'Infectious Disease Tests',
-  'Hormone Tests',
-  'Stool Tests',
-  'Microbiology Tests',
+  'Cardiac Markers',
+  'Pregnancy Tests',
+  'Toxicology Tests',
+  'Microbiology Cultures',
+  'Tissue and Biopsy Tests',
+  'Allergy Testing',
+  'Blood Gas Analysis',
+  'Nutritional Deficiency Tests',
+  'General Screening Tests',
+  'Coagulation Profile',
   'Imaging (Radiology) Tests',
   'Other',
 ];
@@ -170,7 +182,8 @@ export function PatientReport() {
   const { id } = useParams();
   const { user } = useAuth();
   const [data, setData] = useState(null);
-  const backHref = user?.role === ROLES.DOCTOR ? '/visits' : '/patients';
+  const backHref = user?.role === ROLES.DOCTOR ? '/dashboard/doctor' : '/patients';
+  const backLabel = user?.role === ROLES.DOCTOR ? 'Doctor dashboard' : 'Patients';
 
   useEffect(() => {
     let cancelled = false;
@@ -244,16 +257,26 @@ export function PatientReport() {
   const reportTime = generated.toTimeString().slice(0, 8);
 
   return (
-    <>
-      <div className="toolbar no-print">
-        <Link to={backHref}>{user?.role === ROLES.DOCTOR ? '← Visits' : '← Patients'}</Link>
-        <div className="toolbar-spacer" />
+    <div className="patient-report-standalone">
+      <header className="patient-report-toolbar no-print">
+        <Link to={backHref} className="patient-report-toolbar__back">
+          ← {backLabel}
+        </Link>
+        {user?.role === ROLES.DOCTOR ? (
+          <Link to="/dashboard/doctor/full-reports" className="patient-report-toolbar__link">
+            Full reports
+          </Link>
+        ) : null}
+        <span className="patient-report-toolbar__patient">{patient.full_name}</span>
+        <span className="patient-report-toolbar__spacer" aria-hidden />
         <button type="button" className="btn btn-primary" onClick={print}>
           Print report
         </button>
-      </div>
+      </header>
 
-      <div className="formal-report print-root">
+      <main className="patient-report-standalone__main">
+        <div id="full-report" className="patient-report-standalone__content print-root">
+          <div className="formal-report">
         <h1 className="formal-report__dept-title">Department of Medical Records</h1>
 
         <div className="formal-report__meta">
@@ -468,7 +491,9 @@ export function PatientReport() {
             <div className="formal-report__signature-label">Physician signature</div>
           </div>
         </div>
-      </div>
-    </>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }

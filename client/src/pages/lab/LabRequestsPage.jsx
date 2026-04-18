@@ -66,10 +66,7 @@ export function LabRequestsPage() {
       const { data } = await api.get('/lab/eligible-visits');
       setVisits(data.items || []);
       if (!data.items?.length) {
-        toast(
-          'No eligible visits. Patient must be checked in / walk-in, payment collected, and visit ready for the doctor.',
-          { duration: 5000 }
-        );
+        toast('No eligible visits found.', { duration: 4000 });
       }
     } catch {
       toast.error('Could not load visits');
@@ -114,8 +111,7 @@ export function LabRequestsPage() {
             Lab tests
           </h2>
           <p className="muted" style={{ margin: 0 }}>
-            Request tests from the standard catalog by category (blood, urine, imaging, etc.), track status, and open
-            formal reports when results are ready.
+            Request, track, and review lab tests.
           </p>
         </div>
         {isDoctorOrAdmin && (
@@ -130,7 +126,7 @@ export function LabRequestsPage() {
       ) : orders.length === 0 ? (
         <div className="card lab-requests-empty">
           <p className="muted" style={{ margin: 0 }}>
-            No lab tests yet. {isDoctorOrAdmin ? 'Use “Request lab test” after a visit is paid and ready.' : 'Waiting for doctors to submit requests.'}
+            {isDoctorOrAdmin ? 'No lab tests yet.' : 'No requests yet.'}
           </p>
         </div>
       ) : (
@@ -225,7 +221,7 @@ export function LabRequestsPage() {
               <div className="form-row">
                 <span className="lab-modal-label">Tests by category</span>
                 <p className="muted" style={{ margin: '0 0 0.5rem', fontSize: '0.82rem' }}>
-                  Select one or more catalog tests. Order on the lab order follows the order you select them.
+                  Select one or more tests.
                 </p>
                 <LabCatalogPicker selectedIds={selectedTestIds} onChange={setSelectedTestIds} />
               </div>

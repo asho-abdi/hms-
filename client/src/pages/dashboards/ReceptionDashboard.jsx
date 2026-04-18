@@ -29,8 +29,7 @@ export function ReceptionDashboard() {
   return (
     <>
       <p className="muted" style={{ marginBottom: '1.25rem' }}>
-        Register patients, collect payments for visits, manage appointments, and check in arrivals. Billing is part of reception — use{' '}
-        <strong>Payments & billing</strong> after check-in or walk-in when a visit needs payment.
+        Register patients, manage appointments, and collect payments.
       </p>
       <div className="grid-2">
         <div className="stat-card">

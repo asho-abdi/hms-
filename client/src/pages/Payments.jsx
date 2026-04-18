@@ -24,26 +24,29 @@ export function Payments() {
   const [reportItems, setReportItems] = useState([]);
   const [reportLoading, setReportLoading] = useState(true);
   const [reportFilter, setReportFilter] = useState('all');
+  const [chargeFilter, setChargeFilter] = useState('all');
   const [reportPage, setReportPage] = useState(1);
   const [reportMeta, setReportMeta] = useState({ total: 0, pages: 1, limit: 50 });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/payments/unpaid');
+      const { data } = await api.get('/payments/unpaid', {
+        params: { charge_type: chargeFilter },
+      });
       setItems(data.items || []);
     } catch {
       toast.error('Could not load unpaid visits');
     } finally {
       setLoading(false);
     }
-  };
+  }, [chargeFilter]);
 
   const loadReport = useCallback(async () => {
     setReportLoading(true);
     try {
       const { data } = await api.get('/payments/report', {
-        params: { status: reportFilter, page: reportPage, limit: 50 },
+        params: { status: reportFilter, charge_type: chargeFilter, page: reportPage, limit: 50 },
       });
       setReportItems(data.items || []);
       setReportMeta({
@@ -57,11 +60,11 @@ export function Payments() {
     } finally {
       setReportLoading(false);
     }
-  }, [reportFilter, reportPage]);
+  }, [reportFilter, chargeFilter, reportPage]);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   useEffect(() => {
     loadReport();
@@ -89,10 +92,29 @@ export function Payments() {
     <>
       <h2 className="page-title">Payments & billing</h2>
       <p className="muted" style={{ marginBottom: '1.25rem' }}>
-        Collect consultation fees after check-in or walk-in (amount defaults from the doctor&apos;s visit fee). When a
-        doctor orders lab tests, the due amount is the sum of test prices. When a doctor prescribes medication, the row
-        appears with amount 0—enter the pharmacy amount at the desk before confirming payment.
+        Review unpaid visits and record payments.
       </p>
+      <div className="toolbar" style={{ marginBottom: '0.9rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        {[
+          { key: 'all', label: 'All fees' },
+          { key: 'consultation', label: 'Consultation fee' },
+          { key: 'lab', label: 'Lab test fee' },
+          { key: 'pharmacy', label: 'Pharmacy fee' },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            className={chargeFilter === key ? 'btn btn-primary' : 'btn btn-ghost'}
+            style={{ padding: '0.35rem 0.85rem' }}
+            onClick={() => {
+              setChargeFilter(key);
+              setReportPage(1);
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text)' }}>
         Unpaid visits
@@ -190,7 +212,7 @@ export function Payments() {
         Payment report
       </h3>
       <p className="muted" style={{ marginBottom: '0.75rem' }}>
-        All visit payments with paid or unpaid status. Use the filter to narrow the list.
+        Filter and review payment history.
       </p>
       <div className="toolbar" style={{ marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         {[
