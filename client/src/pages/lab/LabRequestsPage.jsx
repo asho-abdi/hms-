@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../../api/client.js';
@@ -35,7 +35,10 @@ export function LabRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [visits, setVisits] = useState([]);
+  const [visitQuery, setVisitQuery] = useState('');
+  const [visitOpen, setVisitOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const visitComboboxRef = useRef(null);
 
   const [selectedTestIds, setSelectedTestIds] = useState([]);
   const [form, setForm] = useState({
@@ -43,6 +46,27 @@ export function LabRequestsPage() {
     priority: LAB_PRIORITY.NORMAL,
     notes: '',
   });
+
+  const filteredVisits = useMemo(() => {
+    const q = visitQuery.trim().toLowerCase();
+    const digits = q.replace(/\D/g, '');
+    if (!q) return visits.slice(0, 60);
+    return visits
+      .filter((v) => {
+        const name = String(v.patient?.full_name || '').toLowerCase();
+        const phone = String(v.patient?.phone || '').replace(/\D/g, '');
+        return name.includes(q) || (digits.length > 0 && phone.includes(digits));
+      })
+      .slice(0, 60);
+  }, [visits, visitQuery]);
+
+  useEffect(() => {
+    const onDocDown = (e) => {
+      if (!visitComboboxRef.current?.contains(e.target)) setVisitOpen(false);
+    };
+    document.addEventListener('mousedown', onDocDown);
+    return () => document.removeEventListener('mousedown', onDocDown);
+  }, []);
 
   const loadOrders = async () => {
     setLoading(true);
@@ -94,6 +118,8 @@ export function LabRequestsPage() {
       toast.success('Lab test requested');
       setModalOpen(false);
       setSelectedTestIds([]);
+      setVisitQuery('');
+      setVisitOpen(false);
       setForm({ visitId: '', priority: LAB_PRIORITY.NORMAL, notes: '' });
       loadOrders();
     } catch (err) {
@@ -101,6 +127,12 @@ export function LabRequestsPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const pickVisit = (v) => {
+    setForm((prev) => ({ ...prev, visitId: v._id }));
+    setVisitQuery(v.patient?.full_name || 'Patient');
+    setVisitOpen(false);
   };
 
   return (
@@ -136,6 +168,7 @@ export function LabRequestsPage() {
             const patientName = o.patient?.full_name || 'Patient';
             const pri = o.priority === LAB_PRIORITY.URGENT ? 'Urgent' : 'Normal';
             const done = o.status === LAB_ORDER_STATUS.COMPLETED;
+            const inProgress = o.status === LAB_ORDER_STATUS.IN_PROGRESS;
 
             return (
               <li key={o._id} className="lab-request-card">
@@ -159,7 +192,9 @@ export function LabRequestsPage() {
                   </div>
                 </div>
                 <div className="lab-request-card__side">
-                  <span className={`lab-status-pill lab-status-pill--${done ? 'done' : 'pending'}`}>{done ? 'Completed' : 'Pending'}</span>
+                  <span className={`lab-status-pill lab-status-pill--${done ? 'done' : inProgress ? 'progress' : 'pending'}`}>
+                    {done ? 'Completed' : inProgress ? 'In progress' : 'Pending'}
+                  </span>
                   <div className="lab-request-card__actions">
                     {done ? (
                       <Link to={`/lab/${o._id}/report`} className="lab-view-link">
@@ -167,7 +202,7 @@ export function LabRequestsPage() {
                       </Link>
                     ) : isLab ? (
                       <Link to={`/lab/${o._id}`} className="lab-view-link">
-                        Enter results
+                        {inProgress ? 'Continue entry' : 'Enter results'}
                       </Link>
                     ) : (
                       <Link to={`/lab/${o._id}`} className="lab-view-link muted-link">
@@ -193,6 +228,8 @@ export function LabRequestsPage() {
                 onClick={() => {
                   setModalOpen(false);
                   setSelectedTestIds([]);
+                  setVisitQuery('');
+                  setVisitOpen(false);
                   setForm({ visitId: '', priority: LAB_PRIORITY.NORMAL, notes: '' });
                 }}
                 aria-label="Close"
@@ -203,20 +240,53 @@ export function LabRequestsPage() {
             <form onSubmit={submitRequest}>
               <div className="form-row">
                 <label htmlFor="lab-visit">Visit (patient)</label>
-                <select
-                  id="lab-visit"
-                  className="select"
-                  required
-                  value={form.visitId}
-                  onChange={(e) => setForm({ ...form, visitId: e.target.value })}
-                >
-                  <option value="">Select visit…</option>
-                  {visits.map((v) => (
-                    <option key={v._id} value={v._id}>
-                      {v.patient?.full_name || 'Patient'} · {formatWhen(v.updatedAt)} · {String(v.visit_status || '').replace(/_/g, ' ')}
-                    </option>
-                  ))}
-                </select>
+                <div className="patient-combobox" ref={visitComboboxRef}>
+                  <input
+                    id="lab-visit"
+                    className="input"
+                    autoComplete="off"
+                    aria-autocomplete="list"
+                    aria-expanded={visitOpen}
+                    role="combobox"
+                    value={visitQuery}
+                    onChange={(e) => {
+                      setVisitQuery(e.target.value);
+                      setForm((prev) => ({ ...prev, visitId: '' }));
+                      setVisitOpen(true);
+                    }}
+                    onFocus={() => setVisitOpen(true)}
+                    placeholder="Search patient name or phone…"
+                    required
+                  />
+                  {visitOpen && filteredVisits.length > 0 ? (
+                    <ul className="patient-combobox__list" role="listbox" aria-label="Visits">
+                      {filteredVisits.map((v) => (
+                        <li key={v._id} role="presentation">
+                          <button
+                            type="button"
+                            className="patient-combobox__option"
+                            role="option"
+                            aria-selected={form.visitId === v._id}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => pickVisit(v)}
+                          >
+                            <span>{v.patient?.full_name || 'Patient'}</span>
+                            <span className="muted" style={{ fontSize: '0.85em' }}>
+                              {formatWhen(v.updatedAt)} · {String(v.visit_status || '').replace(/_/g, ' ')}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {visitOpen && filteredVisits.length === 0 ? (
+                    <p className="patient-combobox__empty muted">
+                      {visitQuery.trim()
+                        ? 'No visits match your search.'
+                        : 'No eligible paid visits available for lab request.'}
+                    </p>
+                  ) : null}
+                </div>
               </div>
               <div className="form-row">
                 <span className="lab-modal-label">Tests by category</span>

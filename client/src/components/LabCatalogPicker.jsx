@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '../api/client.js';
 import './lab-catalog-picker.css';
@@ -10,6 +10,7 @@ import './lab-catalog-picker.css';
  */
 export function LabCatalogPicker({ selectedIds, onChange, disabled = false }) {
   const [catalog, setCatalog] = useState(null);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -38,6 +39,25 @@ export function LabCatalogPicker({ selectedIds, onChange, disabled = false }) {
     else onChange([...cur, idStr]);
   };
 
+  const selectedSet = useMemo(() => new Set(selectedIds.map(String)), [selectedIds]);
+  const searchQuery = search.trim().toLowerCase();
+
+  const filteredCatalog = useMemo(() => {
+    if (!catalog) return [];
+    if (!searchQuery) return catalog;
+
+    return catalog
+      .map((cat) => {
+        const tests = (Array.isArray(cat.tests) ? cat.tests : []).filter((t) => !t.parent_test);
+        const categoryMatch = String(cat.name || '').toLowerCase().includes(searchQuery);
+        const filteredTests = categoryMatch
+          ? tests
+          : tests.filter((t) => String(t.name || '').toLowerCase().includes(searchQuery));
+        return { ...cat, tests: filteredTests };
+      })
+      .filter((cat) => (cat.tests || []).length > 0);
+  }, [catalog, searchQuery]);
+
   if (!catalog) {
     return <p className="muted">Loading test catalog…</p>;
   }
@@ -48,8 +68,23 @@ export function LabCatalogPicker({ selectedIds, onChange, disabled = false }) {
 
   return (
     <div className="lab-catalog-picker">
-      {catalog.map((cat) => (
-        <details key={cat._id} className="lab-catalog-picker__cat" open>
+      <div className="lab-catalog-picker__search-wrap">
+        <input
+          type="search"
+          className="input lab-catalog-picker__search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search test name or category…"
+          autoComplete="off"
+          disabled={disabled}
+          aria-label="Search lab tests"
+        />
+      </div>
+
+      {filteredCatalog.length === 0 ? <p className="muted lab-catalog-picker__empty">No tests match your search.</p> : null}
+
+      {filteredCatalog.map((cat) => (
+        <details key={cat._id} className="lab-catalog-picker__cat">
           <summary className="lab-catalog-picker__summary">{cat.name}</summary>
           <div className="lab-catalog-picker__tests" role="group" aria-label={cat.name}>
             {(cat.tests || []).map((t) => {
@@ -58,7 +93,7 @@ export function LabCatalogPicker({ selectedIds, onChange, disabled = false }) {
                 <label key={t._id} className="lab-catalog-picker__row">
                   <input
                     type="checkbox"
-                    checked={selectedIds.map(String).indexOf(idStr) >= 0}
+                    checked={selectedSet.has(idStr)}
                     onChange={() => toggle(t._id)}
                     disabled={disabled}
                   />

@@ -17,6 +17,7 @@ const CATEGORY_ORDER = [
   'Endocrinology/Hormone Tests',
   'Vitamins',
   'Electrolyte Panel',
+  'Hematology',
   'Infectious Disease Tests',
   'Cardiac Markers',
   'Pregnancy Tests',
@@ -26,7 +27,7 @@ const CATEGORY_ORDER = [
   'Allergy Testing',
   'Blood Gas Analysis',
   'Nutritional Deficiency Tests',
-  'General Screening Tests',
+  'Routine Tests',
   'Coagulation Profile',
   'Imaging (Radiology) Tests',
   'Other',
@@ -67,40 +68,80 @@ function labRefFallback(orderId) {
 }
 
 function mapResultsForReport(results) {
-  return (results || []).map((r) => {
+  const rows = [];
+  for (const r of results || []) {
     const category_name = r.category_name != null ? String(r.category_name) : '';
-    if (r.type === 'numeric') {
-      return {
+    const t = r.result_type || r.type;
+    if (t === 'numeric' || t === 'number') {
+      rows.push({
         kind: 'numeric',
         category_name,
-        test_name: r.parameter,
-        result: String(r.value),
+        test_name: r.parameter || r.test_name,
+        result: String(r.value ?? r.value_number ?? ''),
         n_range: r.normal_range != null && r.normal_range !== '' ? String(r.normal_range) : '—',
         uom: r.unit != null && r.unit !== '' ? String(r.unit) : '—',
         image_url: '',
-      };
+      });
+      continue;
     }
-    if (r.type === 'imaging') {
-      return {
+    if (t === 'panel') {
+      for (const s of r.panel_values || []) {
+        rows.push({
+          kind: s.result_type === 'number' ? 'numeric' : 'text',
+          category_name,
+          test_name: `${r.test_name || 'Panel'} — ${s.name}`,
+          result:
+            s.result_type === 'number'
+              ? String(s.value_number ?? '')
+              : s.result_type === 'boolean'
+                ? s.value_boolean === true
+                  ? 'Positive'
+                  : s.value_boolean === false
+                    ? 'Negative'
+                    : ''
+                : String(s.value_text ?? ''),
+          n_range: s.normal_range || '—',
+          uom: s.unit || '—',
+          image_url: '',
+        });
+      }
+      continue;
+    }
+    if (t === 'boolean') {
+      rows.push({
+        kind: 'text',
+        category_name,
+        test_name: r.test_name,
+        result: r.result || (r.value_boolean === true ? 'Positive' : r.value_boolean === false ? 'Negative' : ''),
+        n_range: r.normal_range != null && r.normal_range !== '' ? String(r.normal_range) : '—',
+        uom: r.unit != null && r.unit !== '' ? String(r.unit) : '—',
+        image_url: '',
+      });
+      continue;
+    }
+    if (t === 'imaging') {
+      rows.push({
         kind: 'imaging',
         category_name,
         test_name: r.test_name,
-        result: String(r.report ?? ''),
+        result: String(r.report ?? r.value_text ?? ''),
         n_range: '—',
         uom: '—',
         image_url: r.image_url != null && r.image_url !== '' ? String(r.image_url) : '',
-      };
+      });
+      continue;
     }
-    return {
+    rows.push({
       kind: 'text',
       category_name,
       test_name: r.test_name,
-      result: String(r.result ?? ''),
-      n_range: '—',
-      uom: '—',
+      result: String(r.result ?? r.value_text ?? ''),
+      n_range: r.normal_range != null && r.normal_range !== '' ? String(r.normal_range) : '—',
+      uom: r.unit != null && r.unit !== '' ? String(r.unit) : '—',
       image_url: '',
-    };
-  });
+    });
+  }
+  return rows;
 }
 
 function rowsForLabOrder(lo) {

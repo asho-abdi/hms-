@@ -11,21 +11,22 @@ const CATEGORIES = [
   { name: 'Endocrinology/Hormone Tests', sort_order: 3 },
   { name: 'Vitamins', sort_order: 4 },
   { name: 'Electrolyte Panel', sort_order: 5 },
-  { name: 'Infectious Disease Tests', sort_order: 6 },
-  { name: 'Cardiac Markers', sort_order: 7 },
-  { name: 'Pregnancy Tests', sort_order: 8 },
-  { name: 'Toxicology Tests', sort_order: 9 },
-  { name: 'Microbiology Cultures', sort_order: 10 },
-  { name: 'Tissue and Biopsy Tests', sort_order: 11 },
-  { name: 'Allergy Testing', sort_order: 12 },
-  { name: 'Blood Gas Analysis', sort_order: 13 },
-  { name: 'Nutritional Deficiency Tests', sort_order: 14 },
-  { name: 'General Screening Tests', sort_order: 15 },
-  { name: 'Coagulation Profile', sort_order: 16 },
-  { name: 'Imaging (Radiology) Tests', sort_order: 17 },
+  { name: 'Hematology', sort_order: 6 },
+  { name: 'Infectious Disease Tests', sort_order: 7 },
+  { name: 'Cardiac Markers', sort_order: 8 },
+  { name: 'Pregnancy Tests', sort_order: 9 },
+  { name: 'Toxicology Tests', sort_order: 10 },
+  { name: 'Microbiology Cultures', sort_order: 11 },
+  { name: 'Tissue and Biopsy Tests', sort_order: 12 },
+  { name: 'Allergy Testing', sort_order: 13 },
+  { name: 'Blood Gas Analysis', sort_order: 14 },
+  { name: 'Nutritional Deficiency Tests', sort_order: 15 },
+  { name: 'Routine Tests', sort_order: 16 },
+  { name: 'Coagulation Profile', sort_order: 17 },
+  { name: 'Imaging (Radiology) Tests', sort_order: 18 },
 ];
 
-/** @type {Record<string, { name: string, type: 'numeric' | 'text' | 'imaging', normal_range?: string, unit?: string }[]>} */
+/** @type {Record<string, { name: string, type: 'numeric' | 'text' | 'imaging', result_type?: 'number' | 'text' | 'boolean' | 'panel' | 'imaging', normal_range?: string, unit?: string, expected_value?: string, panel_subtests?: { key: string, name: string, result_type?: 'number' | 'text' | 'boolean', normal_range?: string, unit?: string }[] }[]>} */
 const TESTS_BY_CATEGORY = {
   'Liver Function Tests': [
     { name: 'ALT (Alanine Aminotransferase)', type: 'numeric', normal_range: '7-56 U/L', unit: 'U/L' },
@@ -82,6 +83,23 @@ const TESTS_BY_CATEGORY = {
     { name: 'Calcium (Ca)', type: 'numeric', normal_range: '8.5-10.2 mg/dL', unit: 'mg/dL' },
     { name: 'Magnesium (Mg)', type: 'numeric', normal_range: '1.7-2.2 mg/dL', unit: 'mg/dL' },
   ],
+  Hematology: [
+    {
+      name: 'CBC (Complete Blood Count)',
+      type: 'text',
+      result_type: 'panel',
+      panel_subtests: [
+        { key: 'wbc', name: 'WBC', result_type: 'number', normal_range: '4.0-11.0', unit: 'x10^9/L' },
+        { key: 'rbc', name: 'RBC', result_type: 'number', normal_range: '4.2-5.9', unit: 'x10^12/L' },
+        { key: 'hgb', name: 'Hemoglobin', result_type: 'number', normal_range: '12-17.5', unit: 'g/dL' },
+        { key: 'hct', name: 'Hematocrit (HCT)', result_type: 'number', normal_range: '36-52', unit: '%' },
+        { key: 'platelets', name: 'Platelets', result_type: 'number', normal_range: '150-450', unit: 'x10^9/L' },
+        { key: 'mcv', name: 'MCV', result_type: 'number', normal_range: '80-100', unit: 'fL' },
+        { key: 'mch', name: 'MCH', result_type: 'number', normal_range: '27-33', unit: 'pg' },
+        { key: 'mchc', name: 'MCHC', result_type: 'number', normal_range: '32-36', unit: 'g/dL' },
+      ],
+    },
+  ],
   'Infectious Disease Tests': [
     { name: 'HIV (Rapid Test)', type: 'text', normal_range: 'Negative' },
     { name: 'Hepatitis B Surface Antigen (HBsAg)', type: 'text', normal_range: 'Negative' },
@@ -101,7 +119,7 @@ const TESTS_BY_CATEGORY = {
   ],
   'Pregnancy Tests': [
     { name: 'HCG (Human Chorionic Gonadotropin)', type: 'numeric', normal_range: '<5 mIU/mL', unit: 'mIU/mL' },
-    { name: 'Urine Pregnancy Test', type: 'text', normal_range: 'Negative' },
+    { name: 'Urine Pregnancy Test', type: 'text', result_type: 'boolean', normal_range: 'Negative', expected_value: 'Negative' },
   ],
   'Toxicology Tests': [
     { name: 'Alcohol (Blood Alcohol Concentration)', type: 'numeric', normal_range: '0-0.08%', unit: 'g/dL' },
@@ -134,8 +152,12 @@ const TESTS_BY_CATEGORY = {
     {
       name: 'Arterial Blood Gas (ABG)',
       type: 'text',
-      normal_range: 'pH: 7.35-7.45, pCO2: 35-45 mmHg, pO2: 75-100 mmHg',
-      unit: 'pH, mmHg',
+      result_type: 'panel',
+      panel_subtests: [
+        { key: 'ph', name: 'pH', result_type: 'number', normal_range: '7.35-7.45', unit: 'pH' },
+        { key: 'pco2', name: 'pCO2', result_type: 'number', normal_range: '35-45', unit: 'mmHg' },
+        { key: 'po2', name: 'pO2', result_type: 'number', normal_range: '75-100', unit: 'mmHg' },
+      ],
     },
     { name: 'Venous Blood Gas', type: 'text', normal_range: 'pH: 7.31-7.41', unit: 'pH' },
   ],
@@ -145,11 +167,10 @@ const TESTS_BY_CATEGORY = {
     { name: 'Zinc', type: 'numeric', normal_range: '70-120 ug/dL', unit: 'ug/dL' },
     { name: 'Copper', type: 'numeric', normal_range: '70-140 ug/dL', unit: 'ug/dL' },
   ],
-  'General Screening Tests': [
+  'Routine Tests': [
     { name: 'Stool General', type: 'text', normal_range: 'No parasite seen' },
     { name: 'Urine General', type: 'text', normal_range: 'Normal' },
     { name: 'Blood Film for Malaria', type: 'text', normal_range: 'No parasite seen' },
-    { name: 'CBC (Complete Blood Count)', type: 'text' },
     { name: 'ESR (Erythrocyte Sedimentation Rate)', type: 'numeric', normal_range: '0-15 mm/hr', unit: 'mm/hr' },
   ],
   'Coagulation Profile': [
@@ -171,6 +192,20 @@ const TESTS_BY_CATEGORY = {
     { name: 'CT Scan', type: 'imaging', normal_range: 'No significant abnormality' },
   ],
 };
+
+function parseNumericRange(rangeText) {
+  const t = String(rangeText || '').trim();
+  if (!t) return [];
+  const between = t.match(/^(-?\d+(?:\.\d+)?)\s*[-–]\s*(-?\d+(?:\.\d+)?)/);
+  if (between) {
+    return [{ gender: 'ANY', min: Number(between[1]), max: Number(between[2]), text: t }];
+  }
+  const less = t.match(/^<\s*(-?\d+(?:\.\d+)?)/);
+  if (less) return [{ gender: 'ANY', max: Number(less[1]), text: t }];
+  const greater = t.match(/^>\s*(-?\d+(?:\.\d+)?)/);
+  if (greater) return [{ gender: 'ANY', min: Number(greater[1]), text: t }];
+  return [{ gender: 'ANY', text: t }];
+}
 
 export async function ensureLabCatalog() {
   if (process.env.DISABLE_LAB_CATALOG_SEED === 'true') {
@@ -194,25 +229,92 @@ export async function ensureLabCatalog() {
     if (!catId) continue;
     for (const t of tests) {
       const existing = await LabTest.findOne({ category: catId, name: t.name }).lean();
+      const resultType = t.result_type || (t.type === 'numeric' ? 'number' : t.type === 'imaging' ? 'imaging' : 'text');
+      const basePayload = {
+        category: catId,
+        name: t.name,
+        type: t.type,
+        result_type: resultType,
+        normal_range: t.normal_range || '',
+        normal_ranges: parseNumericRange(t.normal_range || ''),
+        unit: t.unit || '',
+        expected_value: t.expected_value || '',
+      };
+      let parentId = existing?._id || null;
       if (!existing) {
-        await LabTest.create({
-          category: catId,
-          name: t.name,
-          type: t.type,
-          normal_range: t.normal_range || '',
-          unit: t.unit || '',
+        const created = await LabTest.create({
+          ...basePayload,
+          panel_subtests: [],
+          child_tests: [],
+          parent_test: null,
         });
+        parentId = created._id;
         testsAdded += 1;
-        continue;
+      } else {
+        const patch = {};
+        if (existing.type !== t.type) patch.type = t.type;
+        if ((existing.result_type || '') !== resultType) patch.result_type = resultType;
+        if ((existing.normal_range || '') !== (t.normal_range || '')) patch.normal_range = t.normal_range || '';
+        const nr = parseNumericRange(t.normal_range || '');
+        if (JSON.stringify(existing.normal_ranges || []) !== JSON.stringify(nr)) patch.normal_ranges = nr;
+        if ((existing.unit || '') !== (t.unit || '')) patch.unit = t.unit || '';
+        if ((existing.expected_value || '') !== (t.expected_value || '')) patch.expected_value = t.expected_value || '';
+        if (Object.keys(patch).length > 0) {
+          await LabTest.updateOne({ _id: existing._id }, { $set: patch });
+          testsUpdated += 1;
+        }
       }
 
-      const patch = {};
-      if (existing.type !== t.type) patch.type = t.type;
-      if ((existing.normal_range || '') !== (t.normal_range || '')) patch.normal_range = t.normal_range || '';
-      if ((existing.unit || '') !== (t.unit || '')) patch.unit = t.unit || '';
-      if (Object.keys(patch).length > 0) {
-        await LabTest.updateOne({ _id: existing._id }, { $set: patch });
-        testsUpdated += 1;
+      const panel = (t.panel_subtests || []).map((s, idx) => ({
+        key: s.key,
+        name: s.name,
+        result_type: s.result_type || 'number',
+        unit: s.unit || '',
+        normal_ranges: parseNumericRange(s.normal_range || ''),
+        text: s.normal_range || '',
+        sort_order: idx,
+      }));
+      const childIds = [];
+      for (const s of t.panel_subtests || []) {
+        const childResultType = s.result_type || 'number';
+        const childType = childResultType === 'number' ? 'numeric' : childResultType === 'boolean' ? 'text' : 'text';
+        const childExisting = await LabTest.findOne({ category: catId, name: s.name }).lean();
+        const childPayload = {
+          category: catId,
+          name: s.name,
+          type: childType,
+          result_type: childResultType,
+          parent_test: parentId,
+          unit: s.unit || '',
+          normal_range: s.normal_range || '',
+          normal_ranges: parseNumericRange(s.normal_range || ''),
+        };
+        if (!childExisting) {
+          const child = await LabTest.create({ ...childPayload, panel_subtests: [], child_tests: [] });
+          childIds.push(child._id);
+          testsAdded += 1;
+        } else {
+          childIds.push(childExisting._id);
+          await LabTest.updateOne(
+            { _id: childExisting._id },
+            {
+              $set: childPayload,
+            }
+          );
+        }
+      }
+      await LabTest.updateOne(
+        { _id: parentId },
+        {
+          $set: {
+            parent_test: null,
+            panel_subtests: panel,
+            child_tests: childIds,
+          },
+        }
+      );
+      if (!(t.panel_subtests || []).length) {
+        await LabTest.updateOne({ _id: parentId }, { $set: { child_tests: [], panel_subtests: [] } });
       }
     }
   }
@@ -230,6 +332,9 @@ export async function ensureLabCatalog() {
   for (const [catName, tests] of Object.entries(TESTS_BY_CATEGORY)) {
     for (const t of tests) {
       allowedTestKeys.add(`${catName}::${t.name}`);
+      for (const s of t.panel_subtests || []) {
+        allowedTestKeys.add(`${catName}::${s.name}`);
+      }
     }
   }
 

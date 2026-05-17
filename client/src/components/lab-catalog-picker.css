@@ -7,6 +7,22 @@
   padding: 0.25rem 0;
 }
 
+.lab-catalog-picker__search-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface, #fff);
+  padding-bottom: 0.35rem;
+}
+
+.lab-catalog-picker__search {
+  width: 100%;
+}
+
+.lab-catalog-picker__empty {
+  margin: 0.2rem 0 0.45rem;
+}
+
 .lab-catalog-picker__cat {
   border: 1px solid var(--border, #e2e8f0);
   border-radius: 8px;

@@ -108,6 +108,11 @@
   color: #b45309;
 }
 
+.lab-status-pill--progress {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
 .lab-view-link {
   font-size: 0.88rem;
   font-weight: 600;

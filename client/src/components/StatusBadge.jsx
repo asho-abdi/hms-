@@ -43,6 +43,8 @@ function mapLabStatus(s) {
   switch (s) {
     case LAB_ORDER_STATUS.COMPLETED:
       return styles.success;
+    case LAB_ORDER_STATUS.IN_PROGRESS:
+      return styles.primary;
     case LAB_ORDER_STATUS.PENDING:
       return styles.warning;
     default:

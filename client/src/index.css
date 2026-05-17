@@ -10,13 +10,13 @@
   --text: #0c1222;
   --text-muted: #5a6a80;
 
-  /* Brand — teal + indigo (clinical, distinctive) */
-  --primary: #0d9488;
-  --primary-hover: #0f766e;
-  --primary-dark: #115e59;
-  --accent: #6366f1;
-  --accent-hover: #4f46e5;
-  --cyan: #0891b2;
+  /* Brand — SIU-inspired blue palette */
+  --primary: #2b6cb0;
+  --primary-hover: #245e9c;
+  --primary-dark: #1e4f87;
+  --accent: #1f78c8;
+  --accent-hover: #1c69ad;
+  --cyan: #3b82c4;
 
   /* Semantic */
   --success: #059669;
@@ -28,17 +28,17 @@
   --purple: #9333ea;
 
   /* Alpha helpers (avoid scattered rgba) */
-  --primary-08: rgba(13, 148, 136, 0.08);
-  --primary-12: rgba(13, 148, 136, 0.12);
-  --primary-18: rgba(13, 148, 136, 0.18);
-  --primary-25: rgba(13, 148, 136, 0.25);
-  --accent-10: rgba(99, 102, 241, 0.1);
-  --accent-15: rgba(99, 102, 241, 0.15);
-  --indigo-08: rgba(99, 102, 241, 0.08);
-  --cyan-10: rgba(8, 145, 178, 0.1);
-  --focus-ring: rgba(13, 148, 136, 0.28);
+  --primary-08: rgba(43, 108, 176, 0.08);
+  --primary-12: rgba(43, 108, 176, 0.12);
+  --primary-18: rgba(43, 108, 176, 0.18);
+  --primary-25: rgba(43, 108, 176, 0.25);
+  --accent-10: rgba(31, 120, 200, 0.1);
+  --accent-15: rgba(31, 120, 200, 0.15);
+  --indigo-08: rgba(59, 130, 196, 0.08);
+  --cyan-10: rgba(59, 130, 196, 0.1);
+  --focus-ring: rgba(43, 108, 176, 0.28);
 
-  --gradient-brand: linear-gradient(135deg, #0f766e 0%, #0d9488 38%, #0891b2 72%, #6366f1 100%);
+  --gradient-brand: linear-gradient(135deg, #1f4f89 0%, #2b6cb0 42%, #3b82c4 75%, #6ea8de 100%);
   --gradient-brand-soft: linear-gradient(135deg, var(--primary-12) 0%, var(--indigo-08) 100%);
   --gradient-page: radial-gradient(ellipse 90% 60% at 100% -10%, var(--primary-12), transparent 55%),
     radial-gradient(ellipse 70% 50% at -5% 100%, var(--accent-10), transparent 50%),

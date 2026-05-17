@@ -12,15 +12,19 @@ import {
   Stethoscope,
   FileText,
   LogOut,
-  HeartPulse,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
 import { useAuth, dashboardPathForRole } from '../context/AuthContext.jsx';
 import { ROLES } from '../constants/roles.js';
 
+function section(label) {
+  return { kind: 'section', label };
+}
+
 function navForRole(role) {
   const overview = {
+    kind: 'link',
     to: dashboardPathForRole(role),
     label: 'Overview',
     end: true,
@@ -30,34 +34,38 @@ function navForRole(role) {
   if (role === ROLES.ADMIN) {
     return [
       overview,
-      { to: '/patients', label: 'Patients', icon: Users },
-      { to: '/appointments', label: 'Appointments', icon: CalendarDays },
-      { to: '/visits', label: 'Visits', icon: ClipboardList },
-      { to: '/dashboard/doctor-panel', label: 'Doctor panel', icon: UserCog, end: false },
-      { to: '/payments', label: 'Payments & billing', icon: Wallet },
-      { to: '/lab-requests', label: 'Lab requests', icon: FlaskConical },
-      { to: '/admin/users', label: 'Staff users', icon: ShieldCheck },
+      section('Reception'),
+      { kind: 'link', to: '/patients', label: 'Patients', icon: Users },
+      { kind: 'link', to: '/appointments', label: 'Appointments', icon: CalendarDays },
+      { kind: 'link', to: '/visits', label: 'Visits', icon: ClipboardList },
+      { kind: 'link', to: '/payments', label: 'Payments & billing', icon: Wallet },
+      section('Doctor'),
+      { kind: 'link', to: '/dashboard/doctor-panel', label: 'Doctor panel', icon: UserCog, end: false },
+      section('Laboratory'),
+      { kind: 'link', to: '/lab-requests', label: 'Lab requests', icon: FlaskConical },
+      section('Administration'),
+      { kind: 'link', to: '/admin/users', label: 'Staff users', icon: ShieldCheck },
     ];
   }
   if (role === ROLES.RECEPTIONIST) {
     return [
       overview,
-      { to: '/patients', label: 'Patients', icon: Users },
-      { to: '/appointments', label: 'Appointments', icon: CalendarDays },
-      { to: '/visits', label: 'Visits', icon: ClipboardList },
-      { to: '/payments', label: 'Payments & billing', icon: Wallet },
+      { kind: 'link', to: '/patients', label: 'Patients', icon: Users },
+      { kind: 'link', to: '/appointments', label: 'Appointments', icon: CalendarDays },
+      { kind: 'link', to: '/visits', label: 'Visits', icon: ClipboardList },
+      { kind: 'link', to: '/payments', label: 'Payments & billing', icon: Wallet },
     ];
   }
   if (role === ROLES.DOCTOR) {
     return [
       overview,
-      { to: '/dashboard/doctor/full-reports', label: 'Full reports', icon: FileText, end: true },
-      { to: '/visits', label: 'My queue', icon: Stethoscope },
-      { to: '/lab-requests', label: 'Lab requests', icon: FlaskConical },
+      { kind: 'link', to: '/dashboard/doctor/full-reports', label: 'Full reports', icon: FileText, end: true },
+      { kind: 'link', to: '/visits', label: 'My queue', icon: Stethoscope },
+      { kind: 'link', to: '/lab-requests', label: 'Lab requests', icon: FlaskConical },
     ];
   }
   if (role === ROLES.LAB) {
-    return [overview, { to: '/lab-requests', label: 'Lab requests', icon: FlaskConical }];
+    return [overview, { kind: 'link', to: '/lab-requests', label: 'Lab requests', icon: FlaskConical }];
   }
   return [overview];
 }
@@ -129,11 +137,11 @@ export function DashboardLayout() {
         <div className="sidebar-header-row">
           <div className="sidebar-brand">
             <div className="sidebar-brand__mark" aria-hidden>
-              <HeartPulse size={22} strokeWidth={2} />
+              <img src="/assets/logo.png" alt="" className="sidebar-brand__logo-image" />
             </div>
             <div className="sidebar-brand__text">
-              <strong>HMS</strong>
-              <span className="sidebar-brand__tagline">Hospital Management</span>
+              <strong>SIU</strong>
+              <span className="sidebar-brand__tagline">Somali International University Hospital</span>
             </div>
           </div>
           <button
@@ -150,10 +158,17 @@ export function DashboardLayout() {
         </div>
         <nav id="sidebar-main-nav" className="sidebar-nav" aria-label="Main">
           {links.map((l) => {
+            if (l.kind === 'section') {
+              return (
+                <div key={`section-${l.label}`} className="sidebar-nav__section">
+                  {l.label}
+                </div>
+              );
+            }
             const Icon = l.icon;
             return (
               <NavLink
-                key={l.to + l.label}
+                key={`link-${l.to}-${l.label}`}
                 to={l.to}
                 end={l.end}
                 className={({ isActive }) => (isActive ? 'active' : '')}

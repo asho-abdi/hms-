@@ -33,6 +33,13 @@ export function LabReportPage() {
       </div>
     );
   }
+  const flagStyle = (flag) => {
+    const f = String(flag || '').toUpperCase();
+    if (f === 'HIGH' || f === 'LOW' || f === 'ABNORMAL') {
+      return { color: '#b91c1c', fontWeight: 700 };
+    }
+    return {};
+  };
 
   return (
     <>
@@ -119,7 +126,12 @@ export function LabReportPage() {
                       <tr>
                         <td style={{ fontSize: '0.82rem', color: '#64748b' }}>{row.category_name || '—'}</td>
                         <td>{row.test_name}</td>
-                        <td style={{ fontFamily: 'var(--mono)', whiteSpace: 'pre-wrap' }}>{row.result}</td>
+                        <td style={{ fontFamily: 'var(--mono)', whiteSpace: 'pre-wrap', ...flagStyle(row.flag) }}>
+                          {row.result}
+                          {row.flag && row.flag !== 'NORMAL' && row.flag !== 'UNSET' ? (
+                            <span style={{ marginLeft: '0.45rem', fontSize: '0.72rem' }}>({row.flag})</span>
+                          ) : null}
+                        </td>
                         <td style={{ whiteSpace: 'pre-wrap' }}>{row.n_range}</td>
                         <td>{row.uom}</td>
                       </tr>

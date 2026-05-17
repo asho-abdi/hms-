@@ -412,7 +412,7 @@ export const reopenVisit = asyncHandler(async (req, res) => {
 
   const orders = await LabOrder.find({ visit: visit._id }).select('status').lean();
   let next = VISIT_STATUS.PENDING_DOCTOR;
-  if (orders.some((o) => o.status === LAB_ORDER_STATUS.PENDING)) {
+  if (orders.some((o) => o.status === LAB_ORDER_STATUS.PENDING || o.status === LAB_ORDER_STATUS.IN_PROGRESS)) {
     next = VISIT_STATUS.LAB_REQUESTED;
   } else if (orders.length > 0) {
     next = VISIT_STATUS.LAB_COMPLETED;

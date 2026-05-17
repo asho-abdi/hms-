@@ -29,16 +29,21 @@
 }
 
 .sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
   width: var(--sidebar-width);
   flex-shrink: 0;
-  background: linear-gradient(180deg, #f8fafc 0%, #f0fdfa 55%, #f5f3ff 100%);
+  background: linear-gradient(180deg, #e8f3ff 0%, #d7e9ff 52%, #c8e0ff 100%);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   padding: 1.35rem 0;
-  box-shadow: 4px 0 32px rgba(13, 148, 136, 0.06), 2px 0 0 rgba(13, 148, 136, 0.12) inset;
+  box-shadow: 4px 0 32px rgba(59, 130, 246, 0.16), 2px 0 0 rgba(37, 99, 235, 0.26) inset;
   transition: width 0.22s ease;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sidebar--collapsed {
@@ -119,13 +124,27 @@
   flex-shrink: 0;
   width: 46px;
   height: 46px;
-  border-radius: 14px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--gradient-brand);
-  color: #fff;
-  box-shadow: 0 4px 14px var(--primary-25), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  background: #fff;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 14px var(--primary-12);
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.sidebar-brand:hover .sidebar-brand__mark {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 8px 18px var(--primary-18);
+}
+
+.sidebar-brand__logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .sidebar-brand__text strong {
@@ -142,14 +161,14 @@
   display: block;
   font-size: 0.72rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
   background: var(--gradient-brand);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
   margin-top: 0.2rem;
+  line-height: 1.25;
 }
 
 .sidebar--collapsed .sidebar-brand {
@@ -169,6 +188,17 @@
   flex: 1;
 }
 
+.sidebar-nav__section {
+  margin: 0.7rem 0.15rem 0.18rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 .sidebar-nav a {
   position: relative;
   display: flex;
@@ -186,6 +216,10 @@
 .sidebar--collapsed .sidebar-nav a {
   justify-content: center;
   padding: 0.62rem 0.5rem;
+}
+
+.sidebar--collapsed .sidebar-nav__section {
+  display: none;
 }
 
 .sidebar--collapsed .sidebar-nav__label {
@@ -482,7 +516,7 @@ table.data-table td {
 }
 
 table.data-table th {
-  background: linear-gradient(180deg, #f0fdfa 0%, #eef2ff 100%);
+  background: linear-gradient(180deg, #edf4ff 0%, #f2f7ff 100%);
   color: var(--primary-dark);
   font-weight: 700;
   font-size: 0.72rem;
@@ -538,7 +572,7 @@ table.data-table tbody tr:hover td {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-hover) 50%, #0e7490 100%);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-hover) 50%, #2b6cb0 100%);
   box-shadow: 0 4px 16px var(--primary-25), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
 }
 
@@ -728,12 +762,25 @@ table.data-table tbody tr:hover td {
 .login-page__backdrop {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 100% 70% at 10% 15%, var(--primary-18), transparent 52%),
-    radial-gradient(ellipse 80% 60% at 90% 20%, var(--accent-15), transparent 48%),
-    radial-gradient(ellipse 70% 50% at 50% 100%, var(--cyan-10), transparent 45%),
-    linear-gradient(165deg, #e8eef5 0%, #f4f7fb 45%, #ffffff 100%);
+  background-image:
+    linear-gradient(145deg, rgba(17, 54, 99, 0.72) 0%, rgba(21, 76, 140, 0.5) 38%, rgba(37, 120, 180, 0.32) 100%),
+    url('/assets/login-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  animation: loginBackdropDrift 28s ease-in-out infinite alternate;
+  transform-origin: center;
   z-index: 0;
+}
+
+.login-page__backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 70% at 12% 12%, rgba(110, 168, 222, 0.28), transparent 52%),
+    radial-gradient(ellipse 70% 52% at 92% 20%, rgba(59, 130, 196, 0.22), transparent 50%);
+  pointer-events: none;
 }
 
 .login-page .login-card {
@@ -745,28 +792,64 @@ table.data-table tbody tr:hover td {
   width: 100%;
   max-width: 420px;
   padding: 2.15rem 2.25rem;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.6) inset, 0 -20px 50px var(--primary-08);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 251, 255, 0.9) 100%);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 18px 42px rgba(17, 54, 99, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.45) inset;
+  animation: loginCardIn 0.55s ease-out;
 }
 
 .login-card__brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.6rem;
   margin-bottom: 1.75rem;
 }
 
 .login-card__logo {
   flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--gradient-brand);
-  color: #fff;
+  background: #fff;
+  border: 1px solid var(--border);
   box-shadow: 0 6px 20px var(--primary-25);
+  overflow: hidden;
+  animation: logoFloat 4.6s ease-in-out infinite;
+}
+
+.login-card__logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.login-card__brand-text {
+  text-align: center;
+}
+
+.login-card__brand-text strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.login-card__brand-text span {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--primary-dark);
 }
 
 .login-submit {
@@ -777,6 +860,68 @@ table.data-table tbody tr:hover td {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.sidebar-nav a,
+.btn,
+.card,
+.table-wrap,
+.input,
+.select,
+.textarea {
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-1px);
+}
+
+@keyframes loginBackdropDrift {
+  0% {
+    transform: scale(1.03) translateY(0);
+  }
+  100% {
+    transform: scale(1.07) translateY(-8px);
+  }
+}
+
+@keyframes loginCardIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logoFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page__backdrop,
+  .login-card,
+  .login-card__logo {
+    animation: none !important;
+  }
+
+  .sidebar-nav a,
+  .btn,
+  .card,
+  .table-wrap,
+  .input,
+  .select,
+  .textarea {
+    transition: none !important;
+  }
 }
 
 /* Full-width cards / forms (match tables below) */

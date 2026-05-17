@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { HeartPulse, Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock, LogIn } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth, dashboardPathForRole } from '../context/AuthContext.jsx';
 
@@ -40,14 +40,18 @@ export function Login() {
         <h1 className="visually-hidden">Sign in</h1>
         <div className="login-card__brand">
           <div className="login-card__logo" aria-hidden>
-            <HeartPulse size={28} strokeWidth={2} />
+            <img src="/assets/logo.png" alt="" className="login-card__logo-image" />
+          </div>
+          <div className="login-card__brand-text">
+            <strong>SIU</strong>
+            <span>Somali International University</span>
           </div>
         </div>
         <form onSubmit={handleSubmit} aria-label="Sign in">
           <div className="form-row">
             <label htmlFor="email" className="label-with-icon">
               <Mail size={15} strokeWidth={2} aria-hidden />
-              <span className="visually-hidden">Email</span>
+              <span>Username</span>
             </label>
             <input
               id="email"
@@ -62,7 +66,7 @@ export function Login() {
           <div className="form-row">
             <label htmlFor="password" className="label-with-icon">
               <Lock size={15} strokeWidth={2} aria-hidden />
-              <span className="visually-hidden">Password</span>
+              <span>Password</span>
             </label>
             <input
               id="password"
@@ -76,7 +80,7 @@ export function Login() {
           </div>
           <button type="submit" className="btn btn-primary login-submit" disabled={submitting} aria-busy={submitting}>
             <LogIn size={18} strokeWidth={2} aria-hidden />
-            <span className="visually-hidden">{submitting ? 'Signing in' : 'Sign in'}</span>
+            <span>{submitting ? 'Logging in...' : 'Login'}</span>
           </button>
         </form>
       </div>
