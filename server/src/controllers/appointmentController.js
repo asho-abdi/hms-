@@ -1,12 +1,14 @@
 import { Appointment } from '../models/Appointment.js';
 import { Visit } from '../models/Visit.js';
-import { Payment } from '../models/Payment.js';
 import { User } from '../models/User.js';
 import { Patient } from '../models/Patient.js';
 import { ROLES } from '../config/constants.js';
 import { APPOINTMENT_STATUS } from '../config/constants.js';
-import { VISIT_STATUS, PAYMENT_STATUS } from '../config/constants.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import {
+  createVisitWithPayment,
+  findVisitForAppointment,
+} from '../services/visitEncounter.js';
 
 export const listAppointments = asyncHandler(async (req, res) => {
   const { from, to, doctor, status } = req.query;
@@ -70,6 +72,13 @@ export const createAppointment = asyncHandler(async (req, res) => {
     date_time: new Date(date_time),
     notes: notes || '',
   });
+
+  await createVisitWithPayment({
+    patient,
+    doctor,
+    appointmentId: appt._id,
+  });
+
   const populated = await Appointment.findById(appt._id)
     .populate('patient')
     .populate('doctor', 'fullName email');
@@ -79,35 +88,28 @@ export const createAppointment = asyncHandler(async (req, res) => {
 export const checkInAppointment = asyncHandler(async (req, res) => {
   const appt = await Appointment.findById(req.params.id);
   if (!appt) return res.status(404).json({ message: 'Appointment not found' });
-  if (appt.status !== APPOINTMENT_STATUS.SCHEDULED) {
-    return res.status(400).json({ message: 'Appointment already processed' });
+  if (appt.status === APPOINTMENT_STATUS.CANCELLED) {
+    return res.status(400).json({ message: 'Appointment was cancelled' });
   }
 
-  const docUser = await User.findById(appt.doctor).select('visitFee').lean();
-  const visitFee = docUser != null ? Number(docUser.visitFee) || 0 : 0;
+  let visit = await findVisitForAppointment(appt._id);
+  if (!visit) {
+    visit = await createVisitWithPayment({
+      patient: appt.patient,
+      doctor: appt.doctor,
+      appointmentId: appt._id,
+    });
+  }
 
-  const visit = await Visit.create({
-    patient: appt.patient,
-    doctor: appt.doctor,
-    appointment: appt._id,
-    visit_status: VISIT_STATUS.SENT_TO_CASHIER,
-    payment_status: PAYMENT_STATUS.UNPAID,
-  });
-
-  await Payment.create({
-    visit: visit._id,
-    amount: visitFee,
-    status: PAYMENT_STATUS.UNPAID,
-    charge_type: 'consultation',
-  });
-
-  appt.status = APPOINTMENT_STATUS.CHECKED_IN;
-  await appt.save();
+  if (appt.status === APPOINTMENT_STATUS.SCHEDULED) {
+    appt.status = APPOINTMENT_STATUS.CHECKED_IN;
+    await appt.save();
+  }
 
   const full = await Visit.findById(visit._id)
     .populate('patient')
     .populate('doctor', 'fullName email visitFee')
     .populate('appointment');
 
-  res.status(201).json({ visit: full, message: 'Checked in; visit and payment created' });
+  res.status(201).json({ visit: full, message: 'Patient checked in' });
 });

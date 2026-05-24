@@ -29,7 +29,7 @@ export function ReceptionDashboard() {
   return (
     <>
       <p className="muted" style={{ marginBottom: '1.25rem' }}>
-        Register patients, manage appointments, and collect payments.
+        Register patients, schedule appointments (creates visit + payment), and collect fees.
       </p>
       <div className="grid-2">
         <div className="stat-card">

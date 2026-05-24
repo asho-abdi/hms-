@@ -17,9 +17,15 @@ const userSchema = new mongoose.Schema(
     /** Default consultation fee for this doctor (reception / cashier). */
     visitFee: { type: Number, min: 0, default: 0 },
     isActive: { type: Boolean, default: true },
+    /** Hashed refresh token for rotation (never expose in API). */
+    refreshTokenHash: { type: String, select: false, default: null },
+    failedLoginAttempts: { type: Number, default: 0, select: false },
+    lockUntil: { type: Date, default: null, select: false },
   },
   { timestamps: true }
 );
+
+userSchema.index({ role: 1, isActive: 1 });
 
 userSchema.pre('save', async function hashPassword(next) {
   if (!this.isModified('password')) return next();

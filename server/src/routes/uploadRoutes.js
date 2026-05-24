@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { protect, requireRoles } from '../middleware/auth.js';
+import { uploadLimiter } from '../middleware/rateLimit.js';
 import { ROLES } from '../config/constants.js';
 
 const uploadRoot = path.join(process.cwd(), 'uploads', 'lab-imaging');
@@ -18,10 +19,17 @@ const storage = multer.diskStorage({
   },
 });
 
+const MAX_BYTES = 8 * 1024 * 1024;
+
 const upload = multer({
   storage,
-  limits: { fileSize: 12 * 1024 * 1024 },
+  limits: { fileSize: MAX_BYTES, files: 1 },
   fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const allowedExt = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    if (!allowedExt.includes(ext)) {
+      return cb(new Error('File extension not allowed'));
+    }
     if (/^image\/(jpeg|png|gif|webp)$/i.test(file.mimetype)) {
       cb(null, true);
     } else {
@@ -32,11 +40,11 @@ const upload = multer({
 
 const router = Router();
 
-router.post('/lab-imaging', protect, requireRoles(ROLES.LAB, ROLES.ADMIN), (req, res) => {
+router.post('/lab-imaging', uploadLimiter, protect, requireRoles(ROLES.LAB, ROLES.ADMIN), (req, res) => {
   upload.single('file')(req, res, (err) => {
     if (err) {
       if (err instanceof multer.MulterError) {
-        const msg = err.code === 'LIMIT_FILE_SIZE' ? 'File too large (max 12 MB)' : 'Upload failed';
+        const msg = err.code === 'LIMIT_FILE_SIZE' ? 'File too large (max 8 MB)' : 'Upload failed';
         return res.status(400).json({ message: msg });
       }
       return res.status(400).json({ message: err.message || 'Invalid file' });

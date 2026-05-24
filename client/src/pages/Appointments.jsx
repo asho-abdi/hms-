@@ -163,7 +163,7 @@ export function Appointments() {
         date_time,
         notes: form.notes,
       });
-      toast.success('Appointment created');
+      toast.success('Appointment created — patient is on Visits and Payments');
       setForm({ patient: '', doctor: '', notes: '' });
       setPatientQuery('');
       setPatientOpen(false);
@@ -180,7 +180,7 @@ export function Appointments() {
   const checkIn = async (id) => {
     try {
       await api.post(`/appointments/${id}/check-in`);
-      toast.success('Checked in — visit and payment created');
+      toast.success('Patient checked in');
       loadLists();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Check-in failed');

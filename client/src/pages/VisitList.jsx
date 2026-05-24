@@ -71,7 +71,7 @@ export function VisitList() {
     e.preventDefault();
     try {
       await api.post('/visits/walk-in', walkIn);
-      toast.success('Walk-in visit created');
+      toast.success('Walk-in created — patient is on Appointments, Visits, and Payments');
       setWalkIn({ patient: '', doctor: '' });
       load();
     } catch (err) {
@@ -111,7 +111,7 @@ export function VisitList() {
           ? 'Paid visits assigned to you.'
           : doctorQueueMode
             ? 'Paid visits for the selected doctor.'
-            : 'Recent visits.'}
+            : 'All visits (unpaid and paid). New appointments appear here immediately.'}
       </p>
 
       {canWalkIn && !doctorQueueMode && (

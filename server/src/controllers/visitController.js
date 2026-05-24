@@ -6,7 +6,9 @@ import { Appointment } from '../models/Appointment.js';
 import { User } from '../models/User.js';
 import { Patient } from '../models/Patient.js';
 import { ROLES } from '../config/constants.js';
+import { APPOINTMENT_STATUS } from '../config/constants.js';
 import { VISIT_STATUS, PAYMENT_STATUS } from '../config/constants.js';
+import { createVisitWithPayment } from '../services/visitEncounter.js';
 import { LAB_ORDER_STATUS, LAB_PRIORITY } from '../config/constants.js';
 import { nextLabRefNo } from '../services/labRef.js';
 import { resolveRequestedTestsFromBody } from '../services/labRequestResolve.js';
@@ -188,7 +190,7 @@ export const getVisit = asyncHandler(async (req, res) => {
   res.json(payload);
 });
 
-/** Walk-in: create visit without appointment (reception) */
+/** Walk-in: create visit and same-day appointment (reception) */
 export const createWalkInVisit = asyncHandler(async (req, res) => {
   const { patient, doctor } = req.body;
   const docUser = await User.findById(doctor);
@@ -198,25 +200,24 @@ export const createWalkInVisit = asyncHandler(async (req, res) => {
   const p = await Patient.findById(patient);
   if (!p) return res.status(400).json({ message: 'Invalid patient' });
 
-  const vf = docUser != null ? Number(docUser.visitFee) || 0 : 0;
-
-  const visit = await Visit.create({
+  const appt = await Appointment.create({
     patient,
     doctor,
-    appointment: null,
-    visit_status: VISIT_STATUS.SENT_TO_CASHIER,
-    payment_status: PAYMENT_STATUS.UNPAID,
+    date_time: new Date(),
+    status: APPOINTMENT_STATUS.CHECKED_IN,
+    notes: 'Walk-in',
   });
-  await Payment.create({
-    visit: visit._id,
-    amount: vf,
-    status: PAYMENT_STATUS.UNPAID,
-    charge_type: 'consultation',
+
+  const visit = await createVisitWithPayment({
+    patient,
+    doctor,
+    appointmentId: appt._id,
   });
 
   const full = await Visit.findById(visit._id)
     .populate('patient')
-    .populate('doctor', 'fullName email visitFee');
+    .populate('doctor', 'fullName email visitFee')
+    .populate('appointment');
 
   res.status(201).json(full);
 });

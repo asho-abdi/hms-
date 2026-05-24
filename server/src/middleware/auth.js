@@ -1,5 +1,6 @@
-import jwt from 'jsonwebtoken';
 import { User } from '../models/User.js';
+import { verifyAccessToken } from '../utils/token.js';
+import { ApiError } from '../utils/apiError.js';
 
 function getBearerToken(req) {
   const h = req.headers.authorization;
@@ -7,31 +8,35 @@ function getBearerToken(req) {
   return h.slice(7);
 }
 
+/** JWT authentication — required on all protected HMS routes. */
 export async function protect(req, res, next) {
   try {
     const token = getBearerToken(req);
     if (!token) {
-      return res.status(401).json({ message: 'Not authorized, no token' });
+      throw ApiError.unauthorized('Not authorized, no token');
     }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select('-password');
+
+    const decoded = verifyAccessToken(token);
+    const user = await User.findById(decoded.userId).select('-password -refreshTokenHash');
     if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'Not authorized, user inactive or missing' });
+      throw ApiError.unauthorized('Not authorized, user inactive or missing');
     }
     req.user = user;
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Not authorized, invalid token' });
+    if (err instanceof ApiError) return next(err);
+    next(ApiError.unauthorized('Not authorized, invalid token'));
   }
 }
 
+/** Role-based authorization — compose after protect(). */
 export function requireRoles(...allowedRoles) {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({ message: 'Not authorized' });
+      return next(ApiError.unauthorized());
     }
     if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Forbidden for this role' });
+      return next(ApiError.forbidden('Forbidden for this role'));
     }
     next();
   };

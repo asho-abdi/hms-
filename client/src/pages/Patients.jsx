@@ -62,7 +62,7 @@ export function Patients() {
     e.preventDefault();
     try {
       await api.post('/patients', { ...form, dob: form.dob });
-      toast.success('Patient registered — opening Appointments');
+      toast.success('Patient registered — schedule an appointment to add them to Visits and Payments');
       setForm({ full_name: '', phone: '', gender: 'male', dob: '', address: '' });
       navigate('/appointments');
     } catch (err) {

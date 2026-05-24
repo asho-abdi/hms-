@@ -50,5 +50,6 @@ const visitSchema = new mongoose.Schema(
 
 visitSchema.index({ patient: 1, createdAt: -1 });
 visitSchema.index({ doctor: 1, payment_status: 1, visit_status: 1 });
+visitSchema.index({ appointment: 1 }, { unique: true, sparse: true });
 
 export const Visit = mongoose.model('Visit', visitSchema);

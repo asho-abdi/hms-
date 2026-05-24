@@ -11,4 +11,8 @@ const patientSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+patientSchema.index({ full_name: 1 });
+patientSchema.index({ phone: 1 });
+patientSchema.index({ createdAt: -1 });
+
 export const Patient = mongoose.model('Patient', patientSchema);

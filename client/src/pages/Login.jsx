@@ -20,6 +20,10 @@ export function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email.trim() || password.length < 6) {
+      toast.error('Enter a valid email and password (min 6 characters)');
+      return;
+    }
     setSubmitting(true);
     try {
       const u = await login(email.trim(), password);
